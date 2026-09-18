@@ -1,0 +1,16 @@
+# 大素材与中间产物不入库
+素材/
+临时/
+输出/
+
+# 依赖与构建产物
+node_modules/
+dist/
+
+# qmuse 导入失败诊断（历史记录，无需版本化）
+qmuse-app/.qmuse/import-errors/
+
+# 系统杂项
+Thumbs.db
+.DS_Store
+*.log

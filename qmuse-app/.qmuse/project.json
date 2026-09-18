@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "projectKind": "QMUSE_TEMPLATE",
+  "appType": "GENERAL",
+  "packageVersion": 5,
+  "templateCommit": "f753c2d792a2c6fcb671755786bc644ceebd4e81",
+  "skillVersions": {
+    "qmuse-cloud": "0.0.6"
+  },
+  "targets": {
+    "prod": {
+      "apiBaseUrl": "https://api.qmuse.cn",
+      "appId": "5255402544676766",
+      "spaceId": "S813017058484",
+      "lastVersionId": "81200441",
+      "lastSourceHash": "27a2e6523f85202749acb1fd8b186eed55092abd98078bdf74d5249a450c2b8f",
+      "updatedAt": "2026-09-18T12:33:47.020Z"
+    }
+  }
+}

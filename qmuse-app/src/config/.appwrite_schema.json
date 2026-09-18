@@ -1,0 +1,131 @@
+{
+  "databaseId": "qmuse-app-db",
+  "projectAlias": "default",
+  "tables": [
+    {
+      "tableId": "poems",
+      "name": "诗集",
+      "columns": [
+        {
+          "key": "poemKey",
+          "type": "string",
+          "size": 100,
+          "comment": "内置词库id",
+          "required": false
+        },
+        {
+          "key": "title",
+          "type": "string",
+          "size": 200,
+          "comment": "题目",
+          "required": true
+        },
+        {
+          "key": "author",
+          "type": "string",
+          "size": 100,
+          "comment": "作者",
+          "required": true
+        },
+        {
+          "key": "dynasty",
+          "type": "string",
+          "size": 20,
+          "comment": "朝代",
+          "required": false
+        },
+        {
+          "key": "content",
+          "type": "string",
+          "size": 2000,
+          "comment": "全文",
+          "required": true
+        },
+        {
+          "key": "focusLine",
+          "type": "string",
+          "size": 300,
+          "comment": "聚焦句",
+          "required": false
+        },
+        {
+          "key": "tags",
+          "type": "string",
+          "size": 200,
+          "comment": "标签",
+          "required": false
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_title",
+          "type": "fulltext",
+          "attributes": ["title"]
+        },
+        {
+          "key": "idx_content",
+          "type": "fulltext",
+          "attributes": ["content"]
+        }
+      ]
+    },
+    {
+      "tableId": "exhibits",
+      "name": "展品",
+      "columns": [
+        {
+          "key": "photoFileId",
+          "type": "string",
+          "size": 100,
+          "comment": "照片文件ID",
+          "required": true
+        },
+        {
+          "key": "description",
+          "type": "string",
+          "size": 500,
+          "comment": "场景描述",
+          "required": false
+        },
+        {
+          "key": "poemId",
+          "type": "string",
+          "size": 100,
+          "comment": "关联诗词ID",
+          "required": true
+        },
+        {
+          "key": "focusLine",
+          "type": "string",
+          "size": 300,
+          "comment": "聚焦诗句",
+          "required": false
+        },
+        {
+          "key": "source",
+          "type": "string",
+          "format": "enum",
+          "elements": ["manual", "ai"],
+          "size": 64,
+          "comment": "来源",
+          "required": false,
+          "default": "manual"
+        },
+        {
+          "key": "note",
+          "type": "string",
+          "size": 500,
+          "comment": "备注",
+          "required": false
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_poemId",
+          "type": "key",
+          "attributes": ["poemId"]
+        }
+      ]
+    }
+  ]
+}
