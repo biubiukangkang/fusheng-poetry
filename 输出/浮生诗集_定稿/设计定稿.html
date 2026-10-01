@@ -1,0 +1,581 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>浮生诗集  设计定稿</title><style>
+@page{size:A4;margin:16mm}
+body{font-family:"Noto Serif SC","Source Han Serif SC","SimSun",serif;font-size:11pt;line-height:1.75;color:#1C211E;background:#fff;max-width:180mm;margin:0 auto}
+h1{font-size:24pt;letter-spacing:.06em;border-bottom:2px solid #B33A2E;padding-bottom:8px;margin-top:28px}
+h2{font-size:16pt;border-left:4px solid #B33A2E;padding-left:10px;margin-top:26px}
+h3{font-size:13pt;color:#4A5149;margin-top:20px}
+p{margin:8px 0} ul,ol{margin:6px 0 6px 22px} li{margin:3px 0}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:10pt}
+th,td{border:1px solid #C8C5B0;padding:6px 8px;text-align:left;vertical-align:top}
+th{background:#EAE7D8}
+code{background:#EAE7D8;padding:1px 4px;border-radius:2px;font-size:9.5pt}
+pre{background:#EAE7D8;padding:10px;border-left:3px solid #A88452;overflow:auto;font-size:9pt;line-height:1.5}
+blockquote{border-left:3px solid #B33A2E;margin:10px 0;padding:6px 12px;background:#F7F5EE;color:#4A5149}
+hr{border:0;border-top:1px solid #C8C5B0;margin:22px 0}
+.gallery{display:flex;flex-wrap:wrap;gap:12px}
+figure{margin:0;width:30%;page-break-inside:avoid}
+figure img{width:100%;border:1px solid #C8C5B0}
+figcaption{font-size:9pt;color:#4A5149;text-align:center;margin-top:4px}
+</style></head><body><h1>《浮生诗集》Android 设计定稿</h1>
+<blockquote>版本：v1.0 定稿  </blockquote>
+<blockquote>日期：2026-09-30  </blockquote>
+<blockquote>适用：Android / Jetpack Compose / 全本地 / 单用户私人应用  </blockquote>
+<blockquote>核心概念：<strong>展卷</strong>  </blockquote>
+<blockquote>锁定项：底部五键（浮生馆 / 觅诗 / ＋ / 诗集 / 我），名称、顺序、形态不可更改。</blockquote>
+<hr>
+<h2>0. 一句话定稿</h2>
+<p>把 App 做成一卷可以展开的私人手卷：</p>
+<ul>
+<li>照片是书页上的图版；</li>
+<li>诗是竖排墨字；</li>
+<li>注记是旁批小楷；</li>
+<li>日期、署名、选中状态是朱砂小印；</li>
+<li>底部五键是深墨木轴；</li>
+<li>交互全部是 Android 常规操作，不发明新东西。</li>
+</ul>
+<hr>
+<h2>1. 设计定稿依据</h2>
+<h3>1.1 前几版失败的原因</h3>
+<ol>
+<li>第一版把作品做成白卡片列表：白底 + 圆角 + 软阴影，视觉上是通用信息流，不是私人诗集。</li>
+<li>第二版开始套茶青底 + 朱砂 + 宋体 + 大留白：元素对了，但仍是完成清单，不是从实物出发。</li>
+<li>第三版加有机圆角 / 流体轮廓：没有物理依据，圆角变成装饰，反而更像模板。</li>
+<li>第四版展卷概念成立，但没有处理好照片：横图被强行裁成竖图，照片下缘加波浪撕边，像日报撕口。</li>
+<li>第五版去掉波浪后，又出现图片比例被拉成 2.1:1、竖图过窄的问题。</li>
+</ol>
+<h3>1.2 本定稿的核心判断</h3>
+<ul>
+<li><strong>不是把卡片换个颜色，而是不用卡片。</strong></li>
+<li><strong>不是把所有照片塞进一个框，而是按原图方向决定版式。</strong></li>
+<li><strong>不是给图片加装饰边，而是让图与纸的留白自然分层。</strong></li>
+<li><strong>不是靠动效和阴影制造层次，而是靠纸色、墨色、竖排、印章和呼吸感。</strong></li>
+</ul>
+<h3>1.3 不变项</h3>
+<ul>
+<li>底部五键固定。</li>
+<li>所有操作遵循常规 Android 习惯：上下滚动、点按、返回、搜索、底栏切换、系统相册、系统分享/保存。</li>
+<li>全本地：无账号、无云同步、无社交、无推荐、无推送。</li>
+<li>能力清单一个不少。</li>
+</ul>
+<hr>
+<h2>2. 信息架构</h2>
+<h3>2.1 底部五键</h3>
+<table>
+<thead><tr><th>位置</th><th>名称</th><th>形态</th><th>语义</th></tr></thead><tbody>
+<tr><td>1</td><td>浮生馆</td><td>图标 + 文字</td><td>作品陈列与回看</td></tr>
+<tr><td>2</td><td>觅诗</td><td>图标 + 文字</td><td>找诗与读诗</td></tr>
+<tr><td>3</td><td>＋</td><td>纯加号图形，无文字</td><td>进入创作</td></tr>
+<tr><td>4</td><td>诗集</td><td>图标 + 文字</td><td>收藏的诗</td></tr>
+<tr><td>5</td><td>我</td><td>图标 + 文字</td><td>设置与个人</td></tr>
+</tbody></table>
+<h3>2.2 入口内部层级</h3>
+<ul>
+<li><strong>浮生馆</strong></li>
+<li>一级：作品流，按月分组。</li>
+<li>二级：作品详情（大图、诗、注记、署名、导出图片）。</li>
+<li><strong>觅诗</strong></li>
+<li>一级：搜索 + 今日一句 + 按索引浏览。</li>
+<li>二级：搜索结果、索引列表、诗详情（全文 / 译 / 注 / 赏 / 拾）。</li>
+<li><strong>＋ 创作</strong></li>
+<li>一级：创作台，按照片  注记  配诗  入馆顺序。</li>
+<li>配诗模式：AI 配诗（贴意 / 豪放 / 婉约）、从诗集选、自己写（可补全残句）。</li>
+<li><strong>诗集</strong></li>
+<li>一级：我的收藏，搜索 / 标签筛选 / 整理。</li>
+<li>二级：诗详情（标签、译文、注释、赏析、移出诗集）。</li>
+<li>状态：整理模式（批量打标签、批量移出）。</li>
+<li><strong>我</strong></li>
+<li>一级：默认署名、照片存储质量、数据本地、版本与更新。</li>
+</ul>
+<h3>2.3 核心流程</h3>
+<pre><code>
+生活瞬间
+   点 ＋ 创作
+   拍照 / 从相册选图
+   写一句注记
+   配诗：AI 配诗（贴意 / 豪放 / 婉约）
+          或 从诗集选
+          或 自己写（可补全残句）
+   入馆
+   浮生馆陈列
+</code></pre>
+<h3>2.4 能力覆盖表</h3>
+<table>
+<thead><tr><th>能力</th><th>定稿位置</th></tr></thead><tbody>
+<tr><td>记录生活瞬间</td><td>＋ 创作  拍照 / 相册</td></tr>
+<tr><td>写一句生活描述</td><td>＋ 创作  注记</td></tr>
+<tr><td>AI 配诗</td><td>＋ 创作  AI 配诗，三种风格</td></tr>
+<tr><td>自己挑一首</td><td>＋ 创作  从诗集选</td></tr>
+<tr><td>自己写 / 补全残句</td><td>＋ 创作  自己写</td></tr>
+<tr><td>收进私人文集</td><td>＋ 创作  入馆；浮生馆</td></tr>
+<tr><td>翻看作品</td><td>浮生馆  作品流 / 作品详情</td></tr>
+<tr><td>找一首诗</td><td>觅诗  搜索 / 朝代 / 作者 / 体裁</td></tr>
+<tr><td>管理收藏诗</td><td>诗集  搜索 / 标签 / 整理 / 移出</td></tr>
+<tr><td>读一首诗</td><td>诗详情  全文 / 译文 / 注释 / 赏析</td></tr>
+<tr><td>打标签、按标签筛</td><td>诗集  标签筛选；诗详情  加标签</td></tr>
+<tr><td>导出作品为图片</td><td>作品详情  存为图片</td></tr>
+<tr><td>图片质量档</td><td>我  照片存储质量（省空间 / 保画质）</td></tr>
+<tr><td>署名</td><td>我  默认署名</td></tr>
+</tbody></table>
+<hr>
+<h2>3. 视觉语言</h2>
+<h3>3.1 概念</h3>
+<p><strong>手卷 / 笺纸 / 竖排诗 / 朱砂印 / 木轴底栏。</strong></p>
+<ul>
+<li>页面不是卡片列表，而是纸面。</li>
+<li>作品不是item，而是一张笺。</li>
+<li>图片不是Card 里的 Image，而是纸上的图版。</li>
+<li>元信息不是右侧灰色小字，而是落款和印。</li>
+</ul>
+<h3>3.2 颜色令牌</h3>
+<table>
+<thead><tr><th>Token</th><th>色值</th><th>使用规则</th></tr></thead><tbody>
+<tr><td>Paper 纸</td><td><code>#D9D6C3</code></td><td>全局背景、滚动容器</td></tr>
+<tr><td>PaperHi 笺</td><td><code>#EAE7D8</code></td><td>卷面、纸片、书页、浮层</td></tr>
+<tr><td>PaperDeep 旧纸</td><td><code>#C8C5B0</code></td><td>辅助底色、书页阴影层</td></tr>
+<tr><td>Ink 墨</td><td><code>#1C211E</code></td><td>主文字、主按钮、图标激活态</td></tr>
+<tr><td>Ink2 次墨</td><td><code>#4A5149</code></td><td>注记、次级正文、标签文字</td></tr>
+<tr><td>Ink3 元信息</td><td><code>#6F776D</code></td><td>日期、出处、占位、未激活底栏</td></tr>
+<tr><td>Seal 朱砂</td><td><code>#B33A2E</code></td><td>印章、加号、选中重点</td></tr>
+<tr><td>SealDeep 深朱砂</td><td><code>#8E2A22</code></td><td>按下态、破坏性操作</td></tr>
+<tr><td>Gold 旧金</td><td><code>#A88452</code></td><td>木轴细线、极小面积重点</td></tr>
+<tr><td>Night 夜墨</td><td><code>#171B19</code></td><td>木轴底栏、作品夜展背景</td></tr>
+<tr><td>Line 发丝线</td><td><code>rgba(28,33,30,0.14)</code></td><td>分隔线、输入底线</td></tr>
+<tr><td>LineStrong 强线</td><td><code>rgba(28,33,30,0.26)</code></td><td>按钮描边、书签边</td></tr>
+<tr><td>NightLine 夜线</td><td><code>rgba(234,231,216,0.16)</code></td><td>夜展页分隔线</td></tr>
+</tbody></table>
+<p><strong>朱砂规则：一屏最多一个朱砂重点。</strong>  </p>
+<p>例如：底栏加号 + 选中印章；或日期印 + 选中印章。不要同时出现三个以上朱砂元素。</p>
+<h3>3.3 字体与字阶</h3>
+<table>
+<thead><tr><th>名称</th><th>字号</th><th>行高</th><th>字重</th><th>字体</th><th>用途</th></tr></thead><tbody>
+<tr><td>Masthead</td><td>26sp</td><td>35sp</td><td>500</td><td>宋体 / Noto Serif SC</td><td>页面大题</td></tr>
+<tr><td>PoemVerticalXL</td><td>24sp</td><td>31sp</td><td>400</td><td>宋体</td><td>作品夜展竖排诗</td></tr>
+<tr><td>PoemVertical</td><td>20sp</td><td>26sp</td><td>400</td><td>宋体</td><td>浮生馆竖排诗</td></tr>
+<tr><td>PoemList</td><td>1718sp</td><td>28sp</td><td>400</td><td>宋体</td><td>列表诗句</td></tr>
+<tr><td>Note</td><td>15sp</td><td>28sp</td><td>400</td><td>楷体 / LXGW WenKai</td><td>注记、译文</td></tr>
+<tr><td>NoteSmall</td><td>13sp</td><td>23sp</td><td>400</td><td>楷体</td><td>卡片内注记、摘录</td></tr>
+<tr><td>Body</td><td>14sp</td><td>22sp</td><td>400</td><td>黑体 / Noto Sans SC</td><td>搜索、输入、设置</td></tr>
+<tr><td>Label</td><td>12sp</td><td>18sp</td><td>500</td><td>黑体</td><td>区块标题、标签</td></tr>
+<tr><td>Meta</td><td>1011sp</td><td>1517sp</td><td>400</td><td>黑体</td><td>出处、日期、叶码</td></tr>
+<tr><td>Button</td><td>15sp</td><td>22sp</td><td>500</td><td>黑体</td><td>主按钮，字距 0.32em</td></tr>
+</tbody></table>
+<p><strong>竖排诗规则：</strong></p>
+<ul>
+<li>行序从右到左，字序从上到下。</li>
+<li>字距 0.18em，行距 1.281.3。</li>
+<li>一首诗最多显示两列 focus line；更长则进入诗详情。</li>
+<li>标点在行内占一个字位，不单独换行。</li>
+</ul>
+<h3>3.4 间距阶梯</h3>
+<p><code>4 / 8 / 12 / 16 / 20 / 24 / 32 / 40 / 52 / 64 dp</code></p>
+<ul>
+<li>页面左右：22dp。</li>
+<li>版心宽度：316dp（360 - 222）。</li>
+<li>区块之间：32dp。</li>
+<li>作品之间：2428dp。</li>
+<li>月份分隔：上 18dp / 下 14dp。</li>
+<li>列表条目上下：1516dp。</li>
+<li>底栏高度：64dp + 系统手势区。</li>
+</ul>
+<h3>3.5 形状与材质</h3>
+<ul>
+<li><strong>图片：直角。</strong> 无圆角、无描边、无投影、无下垫纸。</li>
+<li><strong>纸片 / 笺纸：直角 + 纸纤维噪点。</strong></li>
+<li><strong>印章：方印 46dp 小圆角，圆印为 50%。</strong></li>
+<li><strong>按钮：墨条 2dp 圆角；次按钮直角 / 细描边。</strong></li>
+<li><strong>搜索框：不是圆角盒子，是一条 48dp 高的墨线搜索行。</strong></li>
+<li><strong>全局无阴影。</strong> 没有 elevation、没有 blur、没有卡片投影。</li>
+<li><strong>纸纤维：</strong> 140140 的噪点纹理，透明度 0.05 左右，<code>BlendMode.Multiply</code>。</li>
+</ul>
+<h3>3.6 图标与动效</h3>
+<ul>
+<li>图标：22dp，1.5dp 描边，圆角端点，线性风格。</li>
+<li>激活：PaperHi / Paper 对比色；未激活：<code>#9AA093</code>（夜底栏）。</li>
+<li>动效：只保留系统默认的点击 ripple、页面返回、键盘弹出。</li>
+<li>不添加：转场炫技、呼吸灯、红点、角标、Toast、引导气泡、长按菜单。</li>
+</ul>
+<hr>
+<h2>4. 照片存放定稿规则（本次重点）</h2>
+<h3>4.1 总原则</h3>
+<p><strong>照片保持原图方向与比例，不为了版式好看去裁剪或拉伸。</strong>  </p>
+<p>版式根据照片是横图、竖图还是方图来变化，而不是让照片去适应一个固定框。</p>
+<h3>4.2 不做的事</h3>
+<ul>
+<li>不在图片下缘加波浪线、撕纸边、裱纸边、装饰线。</li>
+<li>不给图片加圆角、投影、边框。</li>
+<li>不把横图强行裁成竖图。</li>
+<li>不把竖图强行拉成横图。</li>
+<li>不把图片满宽拉伸成 2:1 或更扁的装饰条。</li>
+</ul>
+<h3>4.3 横图（宽高比  1.2）</h3>
+<ul>
+<li>容器宽度 = 版心 316dp。</li>
+<li>高度 = 316 / 原图比例。</li>
+<li>例：</li>
+<li>16:9  <strong>316  178dp</strong></li>
+<li>3:2  <strong>316  211dp</strong></li>
+<li>4:3  <strong>316  237dp</strong></li>
+<li>如果原图比例超过 2.2:1（极宽全景），显示比例封顶 2.2:1，高度 144dp；此时允许轻微居中裁剪，避免出现一条太薄的图片。</li>
+<li>版式：图片在版心内，下面进入文字区。文字区分两栏：</li>
+<li>左：竖排诗；</li>
+<li>右：注记、出处、日期印。</li>
+</ul>
+<h3>4.4 竖图（宽高比 &lt; 1.2）</h3>
+<ul>
+<li>容器宽度 = 190dp。</li>
+<li>高度 = 190 / 原图比例。</li>
+<li>例：</li>
+<li>4:5  <strong>190  238dp</strong></li>
+<li>3:4  <strong>190  253dp</strong></li>
+<li>2:3  <strong>190  285dp</strong></li>
+<li>如果高度超过 280dp（例如 9:16），以高度 280dp 为上限，宽度按比例反推，例如 9:16  <strong>158  280dp</strong>。</li>
+<li>版式：图片靠左；右侧留出竖排诗、注记、出处、日期印。</li>
+<li>图片和文字之间只有 16dp 留白，没有分隔线。</li>
+</ul>
+<h3>4.5 方图（宽高比 0.91.1）</h3>
+<ul>
+<li>统一按 <strong>240  240dp</strong> 处理。</li>
+<li>右侧放竖排诗与注记，结构同竖图。</li>
+</ul>
+<h3>4.6 图片处理</h3>
+<ul>
+<li>色彩：<code>sepia(0.05) saturate(0.9) contrast(1.02)</code> 的极轻旧色处理。</li>
+<li>不裁切纹理、不加水墨边框、不加纸边。</li>
+<li>图片本身无边框、无圆角、无阴影；点击热区为完整图片区域，最小 48dp。</li>
+<li>点击用系统 ripple，颜色 <code>Ink.copy(alpha = 0.08f)</code>。</li>
+</ul>
+<h3>4.7 不同位置的图片容器</h3>
+<table>
+<thead><tr><th>位置</th><th>容器规则</th></tr></thead><tbody>
+<tr><td>浮生馆  横图</td><td>版心 316dp 宽，按比例</td></tr>
+<tr><td>浮生馆  竖图</td><td>190dp 宽，按比例</td></tr>
+<tr><td>作品夜展  横图</td><td>卷面内宽 260dp，按比例；16:9  260146dp</td></tr>
+<tr><td>作品夜展  竖图</td><td>卷面内宽 190dp，按比例</td></tr>
+<tr><td>创作预览</td><td>固定 218158dp 编辑框，<code>ContentScale.Crop</code>，仅作预览，不是最终展陈比例</td></tr>
+</tbody></table>
+<hr>
+<h2>5. 页面布局规格</h2>
+<h3>5.1 浮生馆</h3>
+<p><strong>一级：作品流</strong></p>
+<ul>
+<li>顶部 Masthead：高约 70dp，标题浮生馆26sp，右侧一卷  N 件10sp。</li>
+<li>月份分隔：左侧竖排 <code>二〇二六年九月</code>，右侧 1dp 发丝线；上 18dp / 下 14dp。</li>
+<li>横图作品：</li>
+<li>图片 316178dp（16:9 示例）；</li>
+<li>图片下 14dp 进入文字区；</li>
+<li>左：竖排诗，宽约 54dp，20sp；</li>
+<li>右：注记 13sp 楷体、出处 10sp、日期印 22dp；</li>
+<li>作品底部留 2428dp。</li>
+<li>竖图作品：</li>
+<li>左：竖图 190238dp（4:5 示例）；</li>
+<li>右：竖排诗 1620sp；下方注记、出处、日期印；</li>
+<li>图片与文字间距 16dp；作品底部留 24dp。</li>
+<li>整页无卡片、无列表分割线，仅靠版心和留白分段。</li>
+</ul>
+<p><strong>二级：作品详情 / 夜展</strong></p>
+<ul>
+<li>背景 <code>Night #171B19</code>，状态栏文字 PaperDeep。</li>
+<li>顶栏 48dp：返回 `` + 居中小字展卷。</li>
+<li>卷面：宽 304dp，<code>PaperHi</code> 底，直边；左侧 1px 旧金细线。</li>
+<li>卷面内边距：20dp。</li>
+<li>图片：卷面内宽 260dp，按原图比例；上下留 18dp。</li>
+<li>诗：竖排，24sp。</li>
+<li>注记：楷体 15sp；出处 11sp；日期印。</li>
+<li>底部：旧金色存图小印，居中。</li>
+</ul>
+<h3>5.2 觅诗</h3>
+<ul>
+<li>Masthead：觅诗26sp，右侧词库 3327 首。</li>
+<li>搜索行：高 48dp，底部 1dp 墨线；左侧放大镜 16dp；占位搜一句诗 / 作者 / 诗题；右侧3327。</li>
+<li>今日一句：</li>
+<li>左侧日期 10sp、注记 14sp、出处 10sp、圆形拾印；</li>
+<li>右侧竖排诗 20sp，最多两列。</li>
+<li>按索引：</li>
+<li>三行，每行 64dp；</li>
+<li>左侧竖排类目朝代 / 作者 / 体裁；</li>
+<li>中间横排示例值；</li>
+<li>右侧 ``。</li>
+<li>搜索结果：横排大字号诗句 1718sp，右侧 32dp 圆钮拾。</li>
+<li>诗详情：</li>
+<li>标题 20sp，作者/朝代 11sp；</li>
+<li>正文 20sp，行高 2.05；</li>
+<li>圆钮译 / 注 / 赏 / 拾40dp；</li>
+<li>译文/注释/赏析用楷体 14sp，展开在下方；</li>
+<li>底部主按钮拾入诗集52dp。</li>
+</ul>
+<h3>5.3 ＋ 创作</h3>
+<ul>
+<li>顶栏 48dp：返回 + 创作。</li>
+<li>照片：</li>
+<li>预览框 218158dp，4:3 编辑框，<code>ContentScale.Crop</code>；</li>
+<li>有图时右下角重选；</li>
+<li>无图时虚线框 + 朱砂圆＋。</li>
+<li>注记：</li>
+<li>标题写一句注记12sp；</li>
+<li>笺纸输入框，最小高 92dp，楷体 15sp，行高 1.85；</li>
+<li>占位示例比如：加班晚归，楼下的桂花开了。</li>
+<li>配诗：</li>
+<li>模式方印三枚：<code>觅</code>（AI 配诗）、<code>集</code>（从诗集选）、<code>写</code>（自己写），42dp 方印；</li>
+<li>AI 模式：风格签 <code>贴意 / 豪放 / 婉约</code>，右侧文字按钮换一换；</li>
+<li>建议块：竖排诗句 18sp + 出处 + 圆形选；</li>
+<li>从诗集选：诗集列表，点击选中；</li>
+<li>自己写：标题、作者、诗句输入 + 次按钮补全残句。</li>
+<li>主按钮：墨条入馆，52dp，字距 0.32em。</li>
+</ul>
+<h3>5.4 诗集</h3>
+<ul>
+<li>Masthead：诗集26sp + 右侧已拾 N 首。</li>
+<li>搜索行：高 42dp，占位在我的诗集里找。</li>
+<li>标签书签：横向滚动，高 2830dp，形状是书签式矩形，顶部圆角 4dp，底边贴线；选中为朱砂底。</li>
+<li>诗叶：</li>
+<li>左侧竖排叶码一、二、三；</li>
+<li>中间诗句 18sp，出处 11sp，小标签；</li>
+<li>无卡片，只有纸面和细线。</li>
+<li>诗详情：</li>
+<li>全文 + 圆钮 <code>译 / 注 / 赏</code>；</li>
+<li>标签区可加/删标签；</li>
+<li>底部移出诗集破坏性操作，<code>SealDeep</code>。</li>
+<li>整理模式：</li>
+<li>右上角整理进入；</li>
+<li>行左侧出现 32dp 圆形选择点；</li>
+<li>底部操作条打标签 / 移出诗集；</li>
+<li>不使用长按菜单。</li>
+</ul>
+<h3>5.5 我</h3>
+<ul>
+<li>Masthead：我26sp + 右侧自用  本地。</li>
+<li>个人：</li>
+<li>4648dp 朱砂方印客；</li>
+<li>22sp 宋体浮生客；</li>
+<li>10sp入馆 12 件  拾诗 5 首。</li>
+<li>设置组：</li>
+<li>书写：默认署名（值可点开编辑）、照片存储质量（省空间 / 保画质）；</li>
+<li>关于：数据（全本地  不上云）、版本与更新（v3.1.0）。</li>
+<li>底部：10sp数据只保存在这台设备上。</li>
+<li>不出现：账号、云同步、社交、关注、排行榜、推送。</li>
+</ul>
+<hr>
+<h2>6. 组件规格</h2>
+<h3>6.1 底栏木轴</h3>
+<ul>
+<li>高度：64dp + 手势安全区。</li>
+<li>背景：<code>Night #171B19</code>。</li>
+<li>顶线：1dp <code>Gold</code>，透明度 50%。</li>
+<li>槽位：5 个等宽。</li>
+<li>图标：22dp，1.5dp 描边。</li>
+<li>文字：10sp，字距 0.06em；未激活 <code>#9AA093</code>，激活 <code>PaperHi</code>，字重 600。</li>
+<li>中间加号：</li>
+<li>5252dp 方印，8dp 圆角；</li>
+<li>背景 <code>Seal #B33A2E</code>；</li>
+<li>外圈 4dp <code>Night</code> 描边；</li>
+<li>最外层 1dp <code>Gold</code> 细线，透明度 65%；</li>
+<li>加号图形 22dp，颜色 <code>#FFF8F1</code>，无文字。</li>
+</ul>
+<h3>6.2 作品叶</h3>
+<ul>
+<li>结构：图片  竖排诗 / 注记 / 出处 / 日期印。</li>
+<li>图片：按第 4 章比例规则；直角、无边框、无投影。</li>
+<li>竖排诗：20sp，行距 1.28，字距 0.18em。</li>
+<li>注记：1315sp 楷体，行高 1.751.85，<code>Ink2</code>。</li>
+<li>出处：1011sp 黑体，字距 0.13em，<code>Ink3</code>。</li>
+<li>日期印：22dp 方印，<code>Seal</code> 底，<code>#FFF8F1</code> 字。</li>
+<li>作品间距：2428dp。</li>
+</ul>
+<h3>6.3 列表条目</h3>
+<ul>
+<li>上下 1516dp；底部 1dp <code>Line</code>。</li>
+<li>诗句：1718sp 宋体，单行省略。</li>
+<li>出处：1011sp 黑体，<code>Ink3</code>。</li>
+<li>右侧圆钮：32dp 圆，1dp <code>LineStrong</code>，单字 13sp 宋体。</li>
+<li>已收藏：墨色填充，纸色单字。</li>
+</ul>
+<h3>6.4 搜索行</h3>
+<ul>
+<li>高 48dp；底部 1dp <code>LineStrong</code>；透明背景。</li>
+<li>放大镜 16dp；输入 14sp；占位 <code>Ink3</code>。</li>
+<li>焦点：底线变 <code>Ink</code>，不出现高亮阴影。</li>
+</ul>
+<h3>6.5 按钮</h3>
+<ul>
+<li>主按钮入馆 / 存为图片：高 52dp，<code>Ink</code> 底，<code>PaperHi</code> 字，15sp，字距 0.32em，2dp 圆角，无阴影。</li>
+<li>次按钮：高 40dp，透明底，1dp <code>LineStrong</code>，13sp，2dp 圆角。</li>
+<li>文字按钮：12sp，<code>Ink2</code>，用于换一换整理。</li>
+</ul>
+<h3>6.6 圆钮</h3>
+<ul>
+<li>40dp 圆，1dp <code>LineStrong</code>，单字 14sp 宋体。</li>
+<li>用于译 / 注 / 赏 / 拾。</li>
+<li>激活：边框和文字 <code>Seal</code>，可用浅朱砂底。</li>
+</ul>
+<h3>6.7 印章</h3>
+<ul>
+<li>方印：22/30/42/48dp，5dp 圆角，<code>Seal</code> 底，<code>#FFF8F1</code> 字。</li>
+<li>圆印：50% 圆，用于拾 / 选。</li>
+<li>金印：透明底，1dp <code>Gold</code> 描边，<code>Gold</code> 字，用于存图。</li>
+<li>朱砂面积一屏不超过 5%。</li>
+</ul>
+<h3>6.8 标签 / 书签</h3>
+<ul>
+<li>顶部筛选：书签式，高 2830dp，顶部 4dp 圆角，底边贴线。</li>
+<li>选中：<code>Seal</code> 底，纸色字。</li>
+<li>小标签：20dp 高，10sp，<code>PaperHi</code> 底，<code>Ink2</code> 字。</li>
+<li>新建标签：点击 <code>＋</code> 打开标准底部抽屉，输入名称，可复用已有标签。</li>
+</ul>
+<h3>6.9 输入框 / 笺纸</h3>
+<ul>
+<li>单行输入：48dp，<code>PaperHi</code> 底，1dp <code>Line</code>，4dp 圆角。</li>
+<li>注记笺纸：最小 92dp，楷体 15sp，行高 1.85，底部可有极淡横线。</li>
+<li>聚焦只改边框颜色，不出现 elevation。</li>
+</ul>
+<h3>6.10 空状态</h3>
+<ul>
+<li>居中，可有一枚 54dp 朱砂描边圆 + 单字。</li>
+<li>文案：楷体 15sp，<code>Ink2</code>，例如还没有拾诗 / 去觅诗里找一句。</li>
+<li>可有一个次按钮去觅诗。</li>
+<li>不放插画、不放引导气泡、不放营销位。</li>
+</ul>
+<h3>6.11 对话框 / 底部抽屉</h3>
+<ul>
+<li>对话框：标准 <code>AlertDialog</code>；<code>PaperHi</code> 底；8dp 圆角；标题 17sp；正文 14sp <code>Ink2</code>；破坏性操作 <code>SealDeep</code>。</li>
+<li>底部抽屉：顶部 16dp 圆角；324dp 拖拽条；左右 24dp；用于标签、图片质量、署名编辑。</li>
+<li>遮罩：<code>rgba(23,27,25,0.28)</code>，无水波纹、无 blur。</li>
+</ul>
+<hr>
+<h2>7. 交互规则</h2>
+<ul>
+<li>所有页面使用系统返回手势 / 返回键。</li>
+<li>主页面用底部五键切换；二级页显示返回箭头。</li>
+<li>列表用上下滚动；竖排诗不是横向滑动，仍随页面上下滚动。</li>
+<li>图片点击进入作品详情；诗行点击进入诗详情。</li>
+<li>收藏用圆形单字按钮，不用长按菜单。</li>
+<li>删除用二级页按钮或整理模式，不用左滑删除，避免误触。</li>
+<li>所有可点元素最小 48dp 热区。</li>
+<li>不使用 Toast、红点、角标、引导气泡。</li>
+</ul>
+<hr>
+<h2>8. 状态与边界</h2>
+<table>
+<thead><tr><th>场景</th><th>处理</th></tr></thead><tbody>
+<tr><td>浮生馆为空</td><td>朱砂圆 + 还没有入馆的浮生 + ＋ 记录这一刻</td></tr>
+<tr><td>诗集为空</td><td>楷体还没有拾诗 / 去觅诗里找一句 + 去觅诗</td></tr>
+<tr><td>搜索无结果</td><td>没有找到，换一句试试，不显示空卡片</td></tr>
+<tr><td>本地数据不可用</td><td>静默降级：显示空状态，不弹错误弹窗</td></tr>
+<tr><td>图片比例极端</td><td>横图封顶 2.2:1，竖图封顶 280dp 高，轻微裁剪</td></tr>
+<tr><td>注记太长</td><td>列表/作品叶最多 3 行，详情页全文显示</td></tr>
+<tr><td>诗太长</td><td>focus line 竖排最多两列，全文进诗详情</td></tr>
+<tr><td>AI 不可用</td><td>保留从诗集选 / 自己写，AI 区只显示一行安静提示</td></tr>
+<tr><td>键盘弹出</td><td>输入框自动上移，底栏不遮挡输入；优先使用系统 imePadding</td></tr>
+<tr><td>暗色夜展页</td><td>只有作品详情使用 Night 背景，其余页面保持纸色</td></tr>
+</tbody></table>
+<hr>
+<h2>9. 术语表</h2>
+<table>
+<thead><tr><th>词</th><th>含义</th><th>是否保留</th></tr></thead><tbody>
+<tr><td>浮生馆</td><td>作品陈列入口</td><td>锁定</td></tr>
+<tr><td>入馆</td><td>把作品收进浮生馆</td><td>保留</td></tr>
+<tr><td>拾</td><td>收藏一首诗</td><td>保留</td></tr>
+<tr><td>注记</td><td>那句生活描述</td><td>保留</td></tr>
+<tr><td>浮生客</td><td>默认署名</td><td>保留</td></tr>
+<tr><td>作品</td><td>照片 + 注记 + 诗 + 署名</td><td>保留</td></tr>
+<tr><td>标签</td><td>用户自定义分类</td><td>保留</td></tr>
+<tr><td>整理</td><td>批量管理诗集</td><td>新增界面词，但不新增能力</td></tr>
+</tbody></table>
+<hr>
+<h2>10. Jetpack Compose 落地建议</h2>
+<h3>10.1 结构</h3>
+<ul>
+<li><code>Scaffold(bottomBar = { BottomRoller() })</code>。</li>
+<li>五个一级页面：<code>LazyColumn</code> + <code>contentPadding(bottom = 64.dp + navInset)</code>。</li>
+<li>二级页：<code>Scaffold</code> + <code>TopAppBar</code>（无阴影、透明底）+ 返回。</li>
+<li>底栏使用 <code>Box</code> + <code>Row</code>，加号用 <code>offset(y = (-18).dp)</code> 浮起。</li>
+</ul>
+<h3>10.2 照片比例</h3>
+<ul>
+<li>用 <code>remember</code> / <code>derivedStateOf</code> 从图片宽高算出 <code>ratio = width / height</code>。</li>
+<li>横图：<code>Modifier.width(316.dp).aspectRatio(ratio)</code>；极端比例封顶 2.2。</li>
+<li>竖图：<code>Modifier.width(190.dp).aspectRatio(ratio)</code>；高度超过 280dp 时以高度为准。</li>
+<li>方图：<code>Modifier.size(240.dp)</code>。</li>
+<li>图片统一 <code>contentScale = ContentScale.Crop</code>，容器已经按原图比例计算，因此正常情况不裁切。</li>
+<li><strong>禁止</strong>：<code>Card</code>、<code>RoundedCornerShape</code>、<code>shadow</code>、<code>border</code> 用在展陈图片上。</li>
+</ul>
+<h3>10.3 竖排诗</h3>
+<p>Compose 没有原生纵排 API，建议：</p>
+<ol>
+<li>短句（focus line，16 字）：把每句拆成字符 <code>Column</code>，再把多列放进一个 <code>Row(layoutDirection = LayoutDirection.Rtl)</code>。</li>
+</ol>
+<ul>
+<li>每字一个 <code>Text</code> 或一个 <code>BasicText</code>。</li>
+<li>字距、行距按 3.3 节。</li>
+</ul>
+<ol>
+<li>长诗（诗详情）：用 <code>TextMeasurer</code> + <code>Canvas</code> 自绘纵排，或封装 <code>VerticalCJKText</code> composable，按字逐个 <code>drawText</code> 到列坐标。</li>
+<li>阅读顺序：列从右到左，字从上到下。</li>
+<li>竖排诗区域本身不参与横向滑动；整个页面仍上下滚动。</li>
+</ol>
+<h3>10.4 字体</h3>
+<ul>
+<li>宋体：建议内置 <code>Noto Serif SC</code>（OFL 许可）。</li>
+<li>楷体：Android 不保证有楷体，建议内置 <code>LXGW WenKai</code>（OFL 许可）或等价开源楷体。</li>
+<li>正文/元信息：<code>Noto Sans SC</code>。</li>
+<li>不依赖设备是否内置宋体/楷体。</li>
+</ul>
+<h3>10.5 图片处理</h3>
+<ul>
+<li>旧色滤镜用 <code>ColorMatrix</code>：轻微降饱和、轻微偏暖。</li>
+<li>如果实现成本高，可以用一层 <code>Color(0x0FD9D6C3)</code> 叠加 + 默认图片；</li>
+<li>照片禁止 <code>clip(RoundedCornerShape)</code>、禁止 <code>shadow</code>、禁止自绘下缘装饰线。</li>
+</ul>
+<h3>10.6 数据与本地</h3>
+<ul>
+<li>Room：<code>poems</code>、<code>exhibits</code>、<code>tags</code>、<code>poem_tags</code>。</li>
+<li>搜索：Room FTS4/FTS5，索引 <code>title</code>、<code>author</code>、<code>content</code>、<code>focus_line</code>。</li>
+<li>图片：应用私有目录；导出图片写 <code>MediaStore</code> 的 <code>Pictures/浮生诗集</code>。</li>
+<li>设置：DataStore；字段 <code>pen_name</code>、<code>image_quality</code>。</li>
+<li>AI：本地模型或本地服务，不接云账号；不可用时安静降级。</li>
+</ul>
+<h3>10.7 动效</h3>
+<ul>
+<li>只使用系统默认的点击 ripple、页面转场、键盘动画。</li>
+<li>不添加自定义粒子、缩放、呼吸、共享元素。</li>
+<li>作品夜展进入时用系统标准的 <code>fadeIn</code> 或默认转场即可。</li>
+</ul>
+<hr>
+<h2>11. 验收清单</h2>
+<ul>
+<li>[ ] 底部五键名称、顺序、形态不变，加号无文字。</li>
+<li>[ ] 所有页面为纸色底，没有白卡片 + 圆角 + 阴影。</li>
+<li>[ ] 浮生馆横图按 16:9 等原比例；竖图按 4:5 等原比例；图片下缘无任何线条。</li>
+<li>[ ] 竖排诗阅读顺序正确：列从右到左，字从上到下。</li>
+<li>[ ] 朱砂一屏最多一个重点。</li>
+<li>[ ] 觅诗可搜诗句 / 作者 / 诗题；可按朝代 / 作者 / 体裁浏览。</li>
+<li>[ ] 诗集可搜索、可标签筛选、可整理批量打标签和移出。</li>
+<li>[ ] 诗详情有全文、译文、注释、赏析。</li>
+<li>[ ] 创作按照片  注记  配诗  入馆；AI 三种风格、从诗集选、自己写、补全残句都存在。</li>
+<li>[ ] 作品详情可存为图片。</li>
+<li>[ ] 我可改署名、切换省空间 / 保画质。</li>
+<li>[ ] 全本地，无账号、无社交、无云同步、无推送。</li>
+</ul>
+<hr>
+<h2>12. 文件清单</h2>
+<ul>
+<li><code>视觉稿总览_定稿.png</code>：总览。</li>
+<li><code>视觉稿/01-浮生馆.png</code>：浮生馆定稿。</li>
+<li><code>视觉稿/02-作品夜展.png</code>：作品详情。</li>
+<li><code>视觉稿/03-觅诗.png</code>：觅诗。</li>
+<li><code>视觉稿/04-创作.png</code>：创作。</li>
+<li><code>视觉稿/05-诗集.png</code>：诗集。</li>
+<li><code>视觉稿/06-我.png</code>：设置。</li>
+<li><code>视觉稿/07-图片比例对比.png</code>：旧版比例问题与修正。</li>
+<li><code>视觉稿/08-图片处理对比.png</code>：图片下缘处理对比。</li>
+<li><code>实现参考/</code>：HTML / CSS / 示例图片。</li>
+<li><code>设计定稿.md</code>：本文件。</li>
+</ul>
+<hr>
+<h2>13. 设计逻辑</h2>
+<ol>
+<li><strong>先有实物，再有界面。</strong> 手卷、笺纸、线装书、印章决定了版式，而不是先画五个页面再补风格。</li>
+<li><strong>竖排诗是灵魂。</strong> 古诗本来就从右到左、从上往下读；竖起来之后，App 不再是通用信息流。</li>
+<li><strong>图片按原方向、原比例放置。</strong> 横图有横图的版式，竖图有竖图的版式，不为了整齐去裁剪；照片下缘不加任何装饰线。</li>
+<li><strong>朱砂只做印。</strong> 加号、日期、选中状态，一屏最多一个重点，所以每次出现都重要。</li>
+<li><strong>常规操作，非常规视觉。</strong> 上下滚动、点按、返回、底栏切换全部是老习惯；变化的是纸、墨、竖排、印章和展陈方式。</li>
+</ol><h2>附录：视觉稿</h2><div class="gallery"><figure><img src="视觉稿总览_定稿.png" alt="视觉稿总览"><figcaption>视觉稿总览</figcaption></figure><figure><img src="视觉稿/01-浮生馆.png" alt="浮生馆"><figcaption>浮生馆</figcaption></figure><figure><img src="视觉稿/02-作品夜展.png" alt="作品夜展"><figcaption>作品夜展</figcaption></figure><figure><img src="视觉稿/03-觅诗.png" alt="觅诗"><figcaption>觅诗</figcaption></figure><figure><img src="视觉稿/04-创作.png" alt="创作"><figcaption>创作</figcaption></figure><figure><img src="视觉稿/05-诗集.png" alt="诗集"><figcaption>诗集</figcaption></figure><figure><img src="视觉稿/06-我.png" alt="我"><figcaption>我</figcaption></figure><figure><img src="视觉稿/07-图片比例对比.png" alt="图片比例对比"><figcaption>图片比例对比</figcaption></figure><figure><img src="视觉稿/08-图片处理对比.png" alt="图片处理对比"><figcaption>图片处理对比</figcaption></figure></div></body></html>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- 拍照临时输出（压缩后转存 filesDir/photos） -->
+    <cache-path name="camera" path="camera/" />
+    <!-- 分享导出图 -->
+    <cache-path name="shared" path="shared/" />
+</paths>

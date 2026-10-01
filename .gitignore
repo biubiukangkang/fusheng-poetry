@@ -1,7 +1,8 @@
 # 大素材与中间产物不入库
 素材/
 临时/
-输出/
+输出/*
+!输出/浮生诗集_定稿/
 
 # 依赖与构建产物
 node_modules/
@@ -9,6 +10,13 @@ dist/
 
 # qmuse 导入失败诊断（历史记录，无需版本化）
 qmuse-app/.qmuse/import-errors/
+
+# 归档 API：密钥与本地数据不入库
+server/.env
+server/data/
+
+# 会话产物
+.zcode/
 
 # 系统杂项
 Thumbs.db
