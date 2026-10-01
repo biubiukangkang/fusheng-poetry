@@ -8,11 +8,12 @@ Kotlin + Jetpack Compose 原生 App，日常唯一入口与数据真源。离线
 
 ```bash
 cd android
-./gradlew assembleDebug
-# 产物：app/build/outputs/apk/debug/app-debug.apk（约 40MB：词库 16MB + 内置字体 33MB）
+./gradlew assembleDebug     # 调试包
+./gradlew assembleRelease   # 发布包（需签名配置，见下）
+# 产物：app/build/outputs/apk/{debug,release}/
 ```
 
-模拟器运行用 Android Studio 或 android-emulator 工具链（AVD：kezhao-test）。Windows 的中文路径与 Gradle 坑见根目录 `踩坑日志.md`。
+**发布签名**：`keystore/fusheng.keystore`（本地保管，已 gitignore），密码等配置在 `local.properties` 的 `KEYSTORE_FILE / KEYSTORE_PASSWORD / KEY_ALIAS / KEY_PASSWORD` 四项。**换电脑构建前必须备份这两个文件**，签名丢失将无法覆盖安装已发布版本。模拟器运行用 Android Studio 或 android-emulator 工具链（AVD：kezhao-test）。Windows 的中文路径与 Gradle 坑见根目录 `踩坑日志.md`。
 
 ## 字体（内置，不依赖系统）
 
