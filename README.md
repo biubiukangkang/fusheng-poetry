@@ -31,7 +31,7 @@
 
 - **竖排诗**：逐字竖排组件（列右→左、字上→下，每字定高格子实现 0.18em 字距），设计规格对齐 CSS `writing-mode: vertical-rl` 语义
 - **内置字体**：思源宋体可变字体（Noto Serif SC VF）+ 霞鹜文楷（LXGW WenKai），不依赖系统字体
-- **词库**：3327 首名篇（assets/corpus.json），全部带译文 / 注释 / 赏析
+- **词库**：3327 首名篇（assets/corpus.json），全部带译文 / 注释 / 赏析；诗文整理自开源 [gushiwen 数据集](https://github.com/chinese-poetry)，仅供学习使用
 - **设计定稿**：`输出/浮生诗集_定稿/`（规格书 + 视觉稿 + HTML 实现参考），色板与版式令牌见 `android/.../ui/theme/Theme.kt`
 - **归档 API**（备查）：`server/` Node 24 + Hono + node:sqlite，App 端同步代码已删，纯本地
 

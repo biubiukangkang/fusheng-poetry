@@ -54,7 +54,7 @@ AGNES_API_KEY=sk-xxx     # AI 配诗/AI 补全，构建时注入 BuildConfig
 
 ## 遗留待办
 
-- **UpdateChecker.REPO 是占位符 `"weichen/fusheng-poetry"`**——宸哥建好 GitHub 发布仓库后改成实际值，「我 → 版本与更新」才生效
+- 应用内更新已启用：`UpdateChecker.REPO` 指向本仓库，发布 GitHub Release（tag 与 `versionName` 一致，附 APK）后「我 → 版本与更新」即可用
 - 真机安装：直接装 `app-debug.apk` 覆盖安装（不丢数据），无任何联网配置要改
 - AI 配诗（三风格）只验证了编译与 UI 流，**真网络请求未验**（模拟器会话未接 agnes-ai）
 - 字体可子集化瘦身（当前全量 33MB，APK 约 40MB；自用可接受，若发 Release 建议按词库+常用字子集化）

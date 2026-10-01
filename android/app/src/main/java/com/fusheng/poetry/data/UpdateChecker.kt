@@ -1,7 +1,7 @@
 package com.fusheng.poetry.data
 
 // 检查更新：拉 GitHub latest release 的 tag 与 BuildConfig.VERSION_NAME 对比
-// 宸哥的发布仓库建好后把 REPO 改成实际值即可生效
+// REPO 指向本仓库，发 Release 后应用内更新即生效
 import android.util.Log
 import com.fusheng.poetry.BuildConfig
 import io.ktor.client.HttpClient
