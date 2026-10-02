@@ -201,12 +201,13 @@ private fun ScrollFrame(
                 Modifier.padding(top = 18.dp),
                 horizontalArrangement = Arrangement.spacedBy(18.dp),
             ) {
+                val poemH = 236.dp.coerceAtLeast((poemLines.maxOf { it.length } * 23f * 1.18f).dp)
                 VerticalPoem(
                     poemLines,
                     fontSize = 23.sp,
                     lineHeightFactor = 1.28f,
                     maxColumns = 2, // focus line 最多两列（§3.3）
-                    modifier = Modifier.height(236.dp).clipToBounds(),
+                    modifier = Modifier.height(poemH),
                     color = Ink2,
                 )
                 Column(Modifier.weight(1f)) {

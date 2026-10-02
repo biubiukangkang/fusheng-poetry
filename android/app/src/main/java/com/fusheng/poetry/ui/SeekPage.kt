@@ -212,11 +212,13 @@ private fun DailyOne(poem: CorpusPoem, picked: Boolean, onPick: () -> Unit) {
             }
         }
         Spacer(Modifier.width(22.dp))
+        val dailyLines = splitPoemLines(poem.focusLine)
+        val dailyH = 196.dp.coerceAtLeast((dailyLines.maxOf { it.length } * 20f * 1.18f).dp)
         VerticalPoem(
-            splitPoemLines(poem.focusLine),
+            dailyLines,
             fontSize = 20.sp,
             maxColumns = 2,
-            modifier = Modifier.width(60.dp).height(196.dp).clipToBounds(),
+            modifier = Modifier.width(60.dp).height(dailyH),
         )
     }
 }

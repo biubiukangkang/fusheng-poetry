@@ -214,13 +214,15 @@ private fun LandscapeLeaf(
     Column {
         Plate(photoFile, card.exhibit.focusLine, Modifier.fillMaxWidth().aspectRatio(displayRatio))
         Row(Modifier.padding(top = 14.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            // 竖排容器随长句增高（下限 128dp = 设计稿短句示例值）
+            val poemH = 128.dp.coerceAtLeast((poemLines.maxOf { it.length } * 16f * 1.18f).dp)
             VerticalPoem(
                 poemLines,
                 fontSize = 16.sp,
                 lineHeightFactor = 1.3f,
                 // focus line 最多两列，全文进夜展/详情（定稿 §3.3）
                 maxColumns = 2,
-                modifier = Modifier.width(54.dp).height(128.dp).clipToBounds(),
+                modifier = Modifier.width(54.dp).height(poemH),
             )
             Column(Modifier.weight(1f)) {
                 NoteText(card.exhibit.note)
@@ -255,14 +257,15 @@ private fun PortraitLeaf(
                     Modifier.width(imgWidth).height(imgHeight)
                 },
             )
-            Column(Modifier.weight(1f)) {
-                VerticalPoem(
-                    poemLines,
-                    fontSize = 16.sp,
-                    lineHeightFactor = 1.3f,
-                    maxColumns = 2,
-                    modifier = Modifier.height(160.dp).clipToBounds(),
-                )
+        Column(Modifier.weight(1f)) {
+            val poemH = 160.dp.coerceAtLeast((poemLines.maxOf { it.length } * 16f * 1.18f).dp)
+            VerticalPoem(
+                poemLines,
+                fontSize = 16.sp,
+                lineHeightFactor = 1.3f,
+                maxColumns = 2,
+                modifier = Modifier.height(poemH),
+            )
                 NoteText(card.exhibit.note, Modifier.padding(top = 10.dp))
                 MetaText(meta.third, Modifier.padding(top = 2.dp))
                 SealLine(meta.first, meta.second, Modifier.padding(top = 10.dp))
