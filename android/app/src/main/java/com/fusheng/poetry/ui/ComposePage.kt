@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -64,6 +65,7 @@ import com.fusheng.poetry.data.ExhibitEntity
 import com.fusheng.poetry.data.FushengDb
 import com.fusheng.poetry.data.PhotoStore
 import com.fusheng.poetry.data.PoemEntity
+import com.fusheng.poetry.data.SettingsStore
 import com.fusheng.poetry.ui.theme.Ink
 import com.fusheng.poetry.ui.theme.Ink2
 import com.fusheng.poetry.ui.theme.Ink3
@@ -92,7 +94,8 @@ fun ComposePage(presetPoemId: String? = null, onDone: () -> Unit) {
 
     var photoUri by remember { mutableStateOf<Uri?>(null) }
     var note by remember { mutableStateOf("") }
-    var mode by remember { mutableStateOf("ai") } // ai(觅) | pick(集) | write(写)
+    // 带预设诗进来时直接进「集」，否则默认「觅」
+    var mode by remember { mutableStateOf(if (presetPoemId != null) "pick" else "ai") } // ai(觅) | pick(集) | write(写)
     var selectedPoemId by remember { mutableStateOf(presetPoemId) }
     var aiStyle by remember { mutableStateOf("贴意") }
     var aiVerses by remember { mutableStateOf<List<String>>(emptyList()) }
@@ -136,9 +139,11 @@ fun ComposePage(presetPoemId: String? = null, onDone: () -> Unit) {
             aiVerses = try {
                 AiClient.seekVerses(note.trim(), aiStyle)
             } catch (e: Exception) {
-                error = "觅句失败：${e.message}"
+                error = if (e is java.net.SocketTimeoutException) "AI 响应慢，请稍后再试"
+                else "觅句失败：${e.message}"
                 emptyList()
             }
+            if (aiVerses.isEmpty() && error == null) error = "觅句失败，请重试"
             aiIndex = 0
             aiBusy = false
         }
@@ -149,7 +154,10 @@ fun ComposePage(presetPoemId: String? = null, onDone: () -> Unit) {
             .map { it.trim() }
             .filter { it.isNotEmpty() }
             .joinToString("\n")
-        if (hint.isEmpty()) return
+        if (hint.isEmpty()) {
+            error = "先写下记得的片段，再让 AI 补全"
+            return
+        }
         completing = true
         error = null
         scope.launch {
@@ -160,7 +168,8 @@ fun ComposePage(presetPoemId: String? = null, onDone: () -> Unit) {
                 writeDynasty = r.dynasty
                 writeLines = r.lines.joinToString("\n")
             } catch (e: Exception) {
-                error = "补全失败：${e.message}"
+                error = if (e is java.net.SocketTimeoutException) "AI 响应慢，请稍后再试"
+                else "补全失败：${e.message}"
             } finally {
                 completing = false
             }
@@ -190,7 +199,7 @@ fun ComposePage(presetPoemId: String? = null, onDone: () -> Unit) {
                         id = UUID.randomUUID().toString(),
                         poemKey = "",
                         title = title,
-                        author = writeAuthor.trim().ifEmpty { "佚名" },
+                        author = writeAuthor.trim().ifEmpty { SettingsStore.penName(context) },
                         dynasty = writeDynasty.trim(),
                         content = lines,
                         focusLine = lines.split("\n").first(),
@@ -246,7 +255,7 @@ fun ComposePage(presetPoemId: String? = null, onDone: () -> Unit) {
                     id = UUID.randomUUID().toString(),
                     poemKey = "",
                     title = note.trim().take(12).ifEmpty { "AI 觅句" },
-                    author = "浮生客",
+                    author = SettingsStore.penName(context),
                     dynasty = "",
                     content = verse,
                     focusLine = verse,
@@ -279,6 +288,7 @@ fun ComposePage(presetPoemId: String? = null, onDone: () -> Unit) {
         Modifier
             .fillMaxSize()
             .paperFibers()
+            .imePadding() // 键盘弹出时内容收到键盘上方，输入框不被盖
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 22.dp)
             .padding(top = 16.dp, bottom = 24.dp),
@@ -395,7 +405,7 @@ fun ComposePage(presetPoemId: String? = null, onDone: () -> Unit) {
                         modifier = Modifier.weight(1f),
                     )
                     if (mode == "ai" && aiVerses.isNotEmpty()) {
-                        CircleKnob("选", picked = true, onClick = {}) // 当前展示组即选中
+                        SealSquare("选", 22, 10) // 当前展示组即选中（状态印，非按钮）
                     }
                     if (mode == "pick" && selectedPoemId != null) {
                         SealSquare("选", 22, 10)
@@ -409,19 +419,23 @@ fun ComposePage(presetPoemId: String? = null, onDone: () -> Unit) {
                     ) {
                         listOf("贴意", "豪放", "婉约").forEach { s ->
                             StyleSign(s, aiStyle == s) {
-                                aiStyle = s
-                                if (aiVerses.isNotEmpty()) seek() // 切风格即重新觅句
+                                // 觅句中不接单：否则标签换了、出句还是旧风格
+                                if (!aiBusy) {
+                                    aiStyle = s
+                                    seek() // 选风格即开始觅句，换风格即重新觅句
+                                }
                             }
                             Spacer(Modifier.width(8.dp))
                         }
                         Spacer(Modifier.weight(1f))
+                        val canSwap = aiVerses.isNotEmpty() && !aiBusy
                         Text(
                             "换一换",
                             fontFamily = SansFont,
                             fontSize = 12.sp,
-                            color = Ink2,
+                            color = if (canSwap) Ink2 else Ink3.copy(alpha = 0.5f),
                             modifier = Modifier
-                                .clickable(enabled = aiVerses.isNotEmpty() && !aiBusy) {
+                                .clickable(enabled = canSwap) {
                                     aiIndex = (aiIndex + 1) % aiVerses.size
                                 }
                                 .padding(4.dp),
@@ -493,7 +507,7 @@ fun ComposePage(presetPoemId: String? = null, onDone: () -> Unit) {
 
         Spacer(Modifier.height(28.dp))
         val canSubmit = !submitting && photoUri != null && when (mode) {
-            "pick" -> selectedPoemId != null
+            "pick" -> picked.any { it.id == selectedPoemId }
             "ai" -> aiVerses.isNotEmpty()
             else -> true
         }
@@ -532,12 +546,13 @@ fun ComposePage(presetPoemId: String? = null, onDone: () -> Unit) {
             onDismissRequest = { showPoemPicker = false },
             containerColor = PaperHi,
         ) {
-            var query by remember { mutableStateOf("") }
-            Column(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp),
-            ) {
+                var query by remember { mutableStateOf("") }
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .imePadding()
+                        .padding(horizontal = 24.dp),
+                ) {
                 Text(
                     "从诗集选一首",
                     fontFamily = SerifFont,
@@ -657,7 +672,7 @@ private fun ModeSeal(char: String, label: String, active: Boolean, onClick: () -
     }
 }
 
-// 笺纸输入：楷体（可选）+ 底部淡横线（fix.css .note-kai.ruled）
+// 笺纸输入：楷体（可选）+ 行底淡横线（fix.css .note-kai.ruled：透明底、线在行间）
 @Composable
 private fun NotePaper(
     value: String,
@@ -667,18 +682,29 @@ private fun NotePaper(
     fontSize: androidx.compose.ui.unit.TextUnit = 15.sp,
     serif: Boolean = true,
 ) {
-    val lineColor = Line
-    val lineSpacing = with(androidx.compose.ui.platform.LocalDensity.current) { (fontSize.value * 1.85f).dp.toPx() }
+    val style = TextStyle(
+        fontFamily = if (serif) KaiFont else SansFont,
+        fontSize = fontSize,
+        lineHeight = (fontSize.value * 1.85f).sp,
+        // Trim.None 保住行盒 half-leading：否则 BasicTextField 把文字裁出视口（显示成空框）
+        lineHeightStyle = androidx.compose.ui.text.style.LineHeightStyle(
+            alignment = androidx.compose.ui.text.style.LineHeightStyle.Alignment.Proportional,
+            trim = androidx.compose.ui.text.style.LineHeightStyle.Trim.None,
+        ),
+        letterSpacing = 0.03.em,
+        color = Ink2,
+    )
+    // 横线尺子与文字行高同为 sp（dp 画线在字体缩放下会错位穿字）
+    val linePx = with(androidx.compose.ui.platform.LocalDensity.current) { fontSize.toPx() * 1.85f }
+    val padTopPx = with(androidx.compose.ui.platform.LocalDensity.current) { 6.dp.toPx() }
     Box(
         Modifier
             .fillMaxWidth()
-            .background(PaperHi)
             .drawBehind {
-                // 底部淡横线，按行高间隔
-                var y = lineSpacing
+                var y = padTopPx + linePx // 第一条线落在首行行底
                 while (y < size.height) {
-                    drawLine(lineColor, Offset(0f, y), Offset(size.width, y), strokeWidth = 1f)
-                    y += lineSpacing
+                    drawLine(Line, Offset(0f, y), Offset(size.width, y), strokeWidth = 1f)
+                    y += linePx
                 }
             }
             .padding(horizontal = 10.dp, vertical = 6.dp)
@@ -687,25 +713,12 @@ private fun NotePaper(
         BasicTextField(
             value = value,
             onValueChange = onValueChange,
-            textStyle = TextStyle(
-                fontFamily = if (serif) KaiFont else SansFont,
-                fontSize = fontSize,
-                lineHeight = (fontSize.value * 1.85f).sp,
-                letterSpacing = 0.03.em,
-                color = Ink2,
-            ),
+            textStyle = style,
             cursorBrush = SolidColor(Seal),
             modifier = Modifier.fillMaxWidth(),
             decorationBox = { inner ->
                 if (value.isEmpty()) {
-                    Text(
-                        placeholder,
-                        fontFamily = if (serif) KaiFont else SansFont,
-                        fontSize = fontSize,
-                        lineHeight = (fontSize.value * 1.85f).sp,
-                        letterSpacing = 0.03.em,
-                        color = Ink3.copy(alpha = 0.7f),
-                    )
+                    Text(placeholder, style = style.copy(color = Ink3.copy(alpha = 0.7f)))
                 }
                 inner
             },

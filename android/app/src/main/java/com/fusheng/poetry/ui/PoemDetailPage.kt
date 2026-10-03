@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -279,7 +280,7 @@ fun PoemDetailPage(
             onDismissRequest = { showTagSheet = false },
             containerColor = PaperHi,
         ) {
-            Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(bottom = 40.dp)) {
+            Column(Modifier.fillMaxWidth().imePadding().padding(horizontal = 24.dp).padding(bottom = 40.dp)) {
                 Text("加标签", fontFamily = SerifFont, fontSize = 16.sp, color = Ink)
                 Spacer(Modifier.height(14.dp))
                 androidx.compose.foundation.text.BasicTextField(

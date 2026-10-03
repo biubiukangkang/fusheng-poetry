@@ -21,6 +21,17 @@ object AiClient {
     private const val BASE_URL = "https://apihub.agnes-ai.com/v1"
     private const val MODEL = "agnes-3.0-flash"
 
+    // AI 生成慢是常态：OkHttp 默认读超时 10s 会误杀慢响应，放宽到 30s
+    private fun newClient() = HttpClient(OkHttp) {
+        engine {
+            config {
+                connectTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
+                readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+                writeTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+            }
+        }
+    }
+
     private const val SYSTEM_PROMPT =
         "你是精通古诗词的助手。根据用户描述的生活场景，创作 3 组两句一组的古风短句，" +
             "意境贴合场景、语言自然。只输出 JSON：" +
@@ -47,7 +58,7 @@ object AiClient {
             "婉约" -> "风格偏婉约：柔婉细腻、情致含蓄。"
             else -> "" // 贴意：默认贴合场景即可
         }
-        val client = HttpClient(OkHttp)
+        val client = newClient()
         try {
             val body = JSONObject().apply {
                 put("model", MODEL)
@@ -74,7 +85,7 @@ object AiClient {
 
     /** 按片段线索补全一首真实古诗词；认不出时抛 IOException */
     suspend fun completePoem(hint: String): PoemComplete = withContext(Dispatchers.IO) {
-        val client = HttpClient(OkHttp)
+        val client = newClient()
         try {
             val body = JSONObject().apply {
                 put("model", MODEL)
@@ -119,7 +130,6 @@ object AiClient {
             .filter { it.isNotEmpty() && !it.startsWith("{") }
             .distinct()
             .take(6)
-            .ifEmpty { listOf("觅句失败，请重试") }
     }
 
     /** 解析补全结果；notFound / 缺关键字段 / 格式坏都返回 null */

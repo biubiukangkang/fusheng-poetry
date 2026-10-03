@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -174,7 +175,7 @@ fun MePage() {
     if (showPenName) {
         var name by remember { mutableStateOf(penName) }
         ModalBottomSheet(onDismissRequest = { showPenName = false }, containerColor = PaperHi) {
-            Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(bottom = 40.dp)) {
+            Column(Modifier.fillMaxWidth().imePadding().padding(horizontal = 24.dp).padding(bottom = 40.dp)) {
                 Text("默认署名", fontFamily = SerifFont, fontSize = 16.sp, color = Ink)
                 Spacer(Modifier.height(14.dp))
                 BasicTextField(

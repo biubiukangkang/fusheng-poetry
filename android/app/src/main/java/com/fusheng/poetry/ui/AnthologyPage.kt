@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -200,7 +201,7 @@ fun AnthologyPage(onGoSeek: () -> Unit, onOpenDetail: (poemId: String) -> Unit, 
         var tagSelection by remember { mutableStateOf<Set<String>>(emptySet()) }
         var newTag by remember { mutableStateOf("") }
         ModalBottomSheet(onDismissRequest = { showTagSheet = false }, containerColor = PaperHi) {
-            Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(bottom = 40.dp)) {
+            Column(Modifier.fillMaxWidth().imePadding().padding(horizontal = 24.dp).padding(bottom = 40.dp)) {
                 Text("给 ${selected.size} 首诗打标签", fontFamily = SerifFont, fontSize = 16.sp, color = Ink)
                 Spacer(Modifier.height(14.dp))
                 if (allTags.isNotEmpty()) {
@@ -313,7 +314,8 @@ private fun PoemLeaf(
     ) {
         if (organizing) {
             Box(Modifier.padding(top = 4.dp, end = 8.dp)) {
-                CircleKnob(if (checked) "选" else "", checked, onToggleCheck)
+                // 勾选是开关：选中后仍可点，才能取消
+                CircleKnob(if (checked) "选" else "", checked, onToggleCheck, enabled = true)
             }
         }
         VerticalText(leafNo, 12.sp, Ink3, 0.12f, Modifier.height(52.dp).width(18.dp))
