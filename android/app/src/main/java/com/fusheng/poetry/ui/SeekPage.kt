@@ -145,7 +145,9 @@ fun SeekPage(onOpenPoem: (poemKey: String) -> Unit, onBrowse: (type: String) -> 
             }
             else -> {
                 val daily = corpus[LocalDate.now().dayOfYear % corpus.size]
-                item(key = "daily") { DailyOne(daily, pickedKeys.contains(daily.id)) { pick(daily) } }
+                item(key = "daily") {
+                    DailyOne(daily, pickedKeys.contains(daily.id), { pick(daily) }) { onOpenPoem(daily.id) }
+                }
                 item(key = "index-label") { SectionLabel("按索引") }
                 item(key = "index") {
                     Column {
@@ -159,13 +161,14 @@ fun SeekPage(onOpenPoem: (poemKey: String) -> Unit, onBrowse: (type: String) -> 
     }
 }
 
-// 今日一句（fix.css 03 布局）：左列小字 + 拾印，右竖排 20sp
+// 今日一句（fix.css 03 布局）：左列小字 + 拾印，右竖排 20sp；点卡片进词库详情
 @Composable
-private fun DailyOne(poem: CorpusPoem, picked: Boolean, onPick: () -> Unit) {
+private fun DailyOne(poem: CorpusPoem, picked: Boolean, onPick: () -> Unit, onOpen: () -> Unit) {
     val today = LocalDate.now()
     Row(
         Modifier
             .fillMaxWidth()
+            .clickable(onClick = onOpen)
             .padding(top = 22.dp),
         verticalAlignment = Alignment.Top,
     ) {

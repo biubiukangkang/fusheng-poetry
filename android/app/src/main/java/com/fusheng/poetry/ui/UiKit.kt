@@ -228,29 +228,30 @@ fun SearchRow(
                     drawCircle(Ink3, radius = 6f * s, center = androidx.compose.ui.geometry.Offset(11f * s, 11f * s), style = style)
                     drawLine(Ink3, androidx.compose.ui.geometry.Offset(16f * s, 16f * s), androidx.compose.ui.geometry.Offset(20f * s, 20f * s), strokeWidth = 1.6f * s, cap = androidx.compose.ui.graphics.StrokeCap.Round)
                 }
-                BasicTextField(
-                    value = query,
-                    onValueChange = onQuery,
-                    singleLine = true,
-                    textStyle = TextStyle(fontFamily = SansFont, fontSize = 14.sp, letterSpacing = 0.06.em, color = Ink),
-                    cursorBrush = SolidColor(Ink),
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(start = 10.dp)
-                        .onFocusChanged { focused = it.isFocused },
-                    decorationBox = { inner ->
-                        if (query.isEmpty()) {
-                            Text(
-                                placeholder,
-                                fontFamily = SansFont,
-                                fontSize = 14.sp,
-                                letterSpacing = 0.06.em,
-                                color = Ink3,
-                            )
-                        }
-                        inner
-                    },
-                )
+                // placeholder 叠放在外层：与输入文字同容器时 Compose 1.7.6 不渲染输入内容
+                Box(Modifier.weight(1f).height(48.dp), contentAlignment = Alignment.CenterStart) {
+                    BasicTextField(
+                        value = query,
+                        onValueChange = onQuery,
+                        singleLine = true,
+                        textStyle = TextStyle(fontFamily = SansFont, fontSize = 14.sp, letterSpacing = 0.06.em, color = Ink),
+                        cursorBrush = SolidColor(Ink),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 10.dp)
+                            .onFocusChanged { focused = it.isFocused },
+                    )
+                    if (query.isEmpty()) {
+                        Text(
+                            placeholder,
+                            fontFamily = SansFont,
+                            fontSize = 14.sp,
+                            letterSpacing = 0.06.em,
+                            color = Ink3,
+                            modifier = Modifier.padding(start = 10.dp),
+                        )
+                    }
+                }
                 if (tail != null) {
                     Text(
                         tail,

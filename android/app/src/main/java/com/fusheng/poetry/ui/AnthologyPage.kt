@@ -221,25 +221,23 @@ fun AnthologyPage(onGoSeek: () -> Unit, onOpenDetail: (poemId: String) -> Unit, 
                     }
                     Spacer(Modifier.height(12.dp))
                 }
-                BasicTextField(
-                    value = newTag,
-                    onValueChange = { if (it.length <= 8) newTag = it },
-                    singleLine = true,
-                    textStyle = TextStyle(fontFamily = SansFont, fontSize = 14.sp, color = Ink),
-                    cursorBrush = SolidColor(Seal),
-                    decorationBox = { inner ->
-                        Box(
-                            Modifier.fillMaxWidth().height(40.dp).background(Paper),
-                            contentAlignment = Alignment.CenterStart,
-                        ) {
-                            if (newTag.isEmpty()) {
-                                Text("新标签（最多 8 字）", fontFamily = SansFont, fontSize = 13.sp, color = Ink3)
-                            }
-                            inner
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                )
+                Box(
+                    Modifier.fillMaxWidth().height(40.dp).background(Paper),
+                    contentAlignment = Alignment.CenterStart,
+                ) {
+                    // placeholder 叠放在外层：与输入文字同容器时 Compose 1.7.6 不渲染输入内容
+                    BasicTextField(
+                        value = newTag,
+                        onValueChange = { if (it.length <= 8) newTag = it },
+                        singleLine = true,
+                        textStyle = TextStyle(fontFamily = SansFont, fontSize = 14.sp, color = Ink),
+                        cursorBrush = SolidColor(Seal),
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
+                    )
+                    if (newTag.isEmpty()) {
+                        Text("新标签（最多 8 字）", fontFamily = SansFont, fontSize = 13.sp, color = Ink3, modifier = Modifier.padding(horizontal = 10.dp))
+                    }
+                }
                 Spacer(Modifier.height(16.dp))
                 InkButton("打上标签", enabled = tagSelection.isNotEmpty() || newTag.isNotBlank()) {
                     scope.launch {

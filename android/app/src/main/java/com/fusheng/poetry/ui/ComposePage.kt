@@ -710,19 +710,17 @@ private fun NotePaper(
             .padding(horizontal = 10.dp, vertical = 6.dp)
             .heightIn(min = minHeight),
     ) {
+        // placeholder 叠放在外层：与输入文字同容器时 Compose 1.7.6 不渲染输入内容
         BasicTextField(
             value = value,
             onValueChange = onValueChange,
             textStyle = style,
             cursorBrush = SolidColor(Seal),
             modifier = Modifier.fillMaxWidth(),
-            decorationBox = { inner ->
-                if (value.isEmpty()) {
-                    Text(placeholder, style = style.copy(color = Ink3.copy(alpha = 0.7f)))
-                }
-                inner
-            },
         )
+        if (value.isEmpty()) {
+            Text(placeholder, style = style.copy(color = Ink3.copy(alpha = 0.7f)))
+        }
     }
 }
 

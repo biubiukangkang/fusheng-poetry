@@ -178,20 +178,21 @@ fun MePage() {
             Column(Modifier.fillMaxWidth().imePadding().padding(horizontal = 24.dp).padding(bottom = 40.dp)) {
                 Text("默认署名", fontFamily = SerifFont, fontSize = 16.sp, color = Ink)
                 Spacer(Modifier.height(14.dp))
-                BasicTextField(
-                    value = name,
-                    onValueChange = { if (it.length <= 12) name = it },
-                    singleLine = true,
-                    textStyle = TextStyle(fontFamily = SerifFont, fontSize = 16.sp, color = Ink),
-                    cursorBrush = SolidColor(Seal),
-                    decorationBox = { inner ->
-                        Box(Modifier.fillMaxWidth().height(44.dp).background(Paper), contentAlignment = Alignment.CenterStart) {
-                            if (name.isEmpty()) Text("浮生客", fontFamily = SerifFont, fontSize = 15.sp, color = Ink3)
-                            inner
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                )
+                Box(
+                    Modifier.fillMaxWidth().height(44.dp).background(Paper),
+                    contentAlignment = Alignment.CenterStart,
+                ) {
+                    // placeholder 叠放在外层：与输入文字同容器时 Compose 1.7.6 不渲染输入内容
+                    BasicTextField(
+                        value = name,
+                        onValueChange = { if (it.length <= 12) name = it },
+                        singleLine = true,
+                        textStyle = TextStyle(fontFamily = SerifFont, fontSize = 16.sp, color = Ink),
+                        cursorBrush = SolidColor(Seal),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    if (name.isEmpty()) Text("浮生客", fontFamily = SerifFont, fontSize = 15.sp, color = Ink3)
+                }
                 Spacer(Modifier.height(16.dp))
                 InkButton("记下", enabled = name.isNotBlank()) {
                     penName = name.trim()

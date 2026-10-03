@@ -283,26 +283,27 @@ fun PoemDetailPage(
             Column(Modifier.fillMaxWidth().imePadding().padding(horizontal = 24.dp).padding(bottom = 40.dp)) {
                 Text("加标签", fontFamily = SerifFont, fontSize = 16.sp, color = Ink)
                 Spacer(Modifier.height(14.dp))
-                androidx.compose.foundation.text.BasicTextField(
-                    value = newTag,
-                    onValueChange = { if (it.length <= 8) newTag = it },
-                    singleLine = true,
-                    textStyle = androidx.compose.ui.text.TextStyle(
-                        fontFamily = SansFont,
-                        fontSize = 14.sp,
-                        color = Ink,
-                    ),
-                    cursorBrush = androidx.compose.ui.graphics.SolidColor(Seal),
-                    decorationBox = { inner ->
-                        Box(Modifier.fillMaxWidth().height(40.dp).background(Paper), contentAlignment = Alignment.CenterStart) {
-                            if (newTag.isEmpty()) {
-                                Text("新标签（最多 8 字）", fontFamily = SansFont, fontSize = 13.sp, color = Ink3)
-                            }
-                            inner
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                )
+                Box(
+                    Modifier.fillMaxWidth().height(40.dp).background(Paper),
+                    contentAlignment = Alignment.CenterStart,
+                ) {
+                    // placeholder 叠放在外层：与输入文字同容器时 Compose 1.7.6 不渲染输入内容
+                    androidx.compose.foundation.text.BasicTextField(
+                        value = newTag,
+                        onValueChange = { if (it.length <= 8) newTag = it },
+                        singleLine = true,
+                        textStyle = androidx.compose.ui.text.TextStyle(
+                            fontFamily = SansFont,
+                            fontSize = 14.sp,
+                            color = Ink,
+                        ),
+                        cursorBrush = androidx.compose.ui.graphics.SolidColor(Seal),
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
+                    )
+                    if (newTag.isEmpty()) {
+                        Text("新标签（最多 8 字）", fontFamily = SansFont, fontSize = 13.sp, color = Ink3, modifier = Modifier.padding(horizontal = 10.dp))
+                    }
+                }
                 Spacer(Modifier.height(16.dp))
                 InkButton("加上", enabled = newTag.isNotBlank()) {
                     onTagsChange((detail.tags + newTag.trim()).distinct())
