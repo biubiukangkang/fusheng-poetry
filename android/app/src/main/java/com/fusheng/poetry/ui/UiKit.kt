@@ -179,13 +179,14 @@ fun CircleKnob(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     sizeDp: Int = 32,
+    enabled: Boolean = !picked,
 ) {
     Box(
         modifier
             .size(sizeDp.dp)
             .background(if (picked) Ink else Color.Transparent, CircleShape)
             .border(1.dp, if (picked) Ink else LineStrong, CircleShape)
-            .clickable(enabled = !picked, onClick = onClick),
+            .clickable(enabled = enabled, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Text(

@@ -56,12 +56,12 @@ private val DYNASTY_ORDER = listOf(
 private val GENRE_ORDER = listOf("诗", "词", "曲", "文", "赋", "其他")
 
 @Composable
-fun CorpusBrowserPage(onOpenPoem: (poemKey: String) -> Unit) {
+fun CorpusBrowserPage(initialType: String = "朝代", onOpenPoem: (poemKey: String) -> Unit) {
     val context = LocalContext.current
     val corpus by produceState<List<CorpusPoem>?>(initialValue = null) {
         value = CorpusRepo.loadAsync(context)
     }
-    var type by remember { mutableStateOf("朝代") }
+    var type by remember { mutableStateOf(if (initialType in INDEX_TYPES) initialType else "朝代") }
     var value by remember { mutableStateOf<String?>(null) }
 
     // 诗列表 → 返回值列表

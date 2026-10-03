@@ -52,7 +52,7 @@ import java.util.UUID
 import kotlinx.coroutines.launch
 
 @Composable
-fun SeekPage(onOpenPoem: (poemKey: String) -> Unit, onBrowse: () -> Unit) {
+fun SeekPage(onOpenPoem: (poemKey: String) -> Unit, onBrowse: (type: String) -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val dao = remember { FushengDb.get(context).dao() }
@@ -149,9 +149,9 @@ fun SeekPage(onOpenPoem: (poemKey: String) -> Unit, onBrowse: () -> Unit) {
                 item(key = "index-label") { SectionLabel("按索引") }
                 item(key = "index") {
                     Column {
-                        IndexRow("朝代", "先秦 汉 魏晋 唐 宋 元 明 清", onBrowse)
-                        IndexRow("作者", "李白 杜甫 苏轼 李清照 王维", onBrowse)
-                        IndexRow("体裁", "诗 词 曲 文 赋 其他", onBrowse)
+                        IndexRow("朝代", "先秦 汉 魏晋 唐 宋 元 明 清") { onBrowse("朝代") }
+                        IndexRow("作者", "李白 杜甫 苏轼 李清照 王维") { onBrowse("作者") }
+                        IndexRow("体裁", "诗 词 曲 文 赋 其他") { onBrowse("体裁") }
                     }
                 }
             }

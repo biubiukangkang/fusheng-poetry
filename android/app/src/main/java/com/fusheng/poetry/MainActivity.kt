@@ -81,7 +81,7 @@ private fun Root() {
     var composing by rememberSaveable { mutableStateOf(false) }
     var exhibitDetailId by rememberSaveable { mutableStateOf<String?>(null) } // 作品夜展
     var detailPoemId by rememberSaveable { mutableStateOf<String?>(null) } // 诗集详情
-    var browsing by rememberSaveable { mutableStateOf(false) } // 词库浏览
+    var browsing by rememberSaveable { mutableStateOf<String?>(null) } // 词库浏览（携带索引类型）
     var corpusDetailKey by rememberSaveable { mutableStateOf<String?>(null) } // 词库详情
 
     fun closeOverlays() {
@@ -89,15 +89,15 @@ private fun Root() {
         composingPreset = null
         exhibitDetailId = null
         detailPoemId = null
-        browsing = false
+        browsing = null
         corpusDetailKey = null
     }
-    BackHandler(enabled = composing || exhibitDetailId != null || detailPoemId != null || browsing || corpusDetailKey != null) {
+    BackHandler(enabled = composing || exhibitDetailId != null || detailPoemId != null || browsing != null || corpusDetailKey != null) {
         when {
             composing -> composing = false
             exhibitDetailId != null -> exhibitDetailId = null
             corpusDetailKey != null -> corpusDetailKey = null
-            browsing -> browsing = false
+            browsing != null -> browsing = null
             else -> detailPoemId = null
         }
     }
@@ -105,7 +105,7 @@ private fun Root() {
     Scaffold(
         containerColor = Paper,
         topBar = {
-            val overlay = composing || exhibitDetailId != null || detailPoemId != null || browsing || corpusDetailKey != null
+            val overlay = composing || exhibitDetailId != null || detailPoemId != null || browsing != null || corpusDetailKey != null
             if (overlay) {
                 TopBar(
                     title = when {
@@ -122,7 +122,7 @@ private fun Root() {
                             composing -> composing = false
                             exhibitDetailId != null -> exhibitDetailId = null
                             corpusDetailKey != null -> corpusDetailKey = null
-                            browsing -> browsing = false
+                            browsing != null -> browsing = null
                             else -> detailPoemId = null
                         }
                     },
@@ -145,7 +145,7 @@ private fun Root() {
                 },
                 onPlus = {
                     detailPoemId = null
-                    browsing = false
+                    browsing = null
                     corpusDetailKey = null
                     composingPreset = null
                     composing = true
@@ -233,7 +233,7 @@ private fun Root() {
                         )
                     }
                 }
-                browsing -> CorpusBrowserPage(onOpenPoem = { corpusDetailKey = it })
+                browsing != null -> CorpusBrowserPage(initialType = browsing!!, onOpenPoem = { corpusDetailKey = it })
                 else -> when (tab) {
                     Tab.HALL -> HallPage(
                         onOpenExhibit = { exhibitDetailId = it },
@@ -244,7 +244,7 @@ private fun Root() {
                     )
                     Tab.SEEK -> SeekPage(
                         onOpenPoem = { corpusDetailKey = it },
-                        onBrowse = { browsing = true },
+                        onBrowse = { browsing = it },
                     )
                     Tab.ANTHOLOGY -> AnthologyPage(
                         onGoSeek = { tab = Tab.SEEK },
