@@ -21,8 +21,8 @@ android {
         applicationId = "com.fusheng.poetry"
         minSdk = 26
         targetSdk = 35
-        versionCode = 5
-        versionName = "4.0.2"
+        versionCode = 6
+        versionName = "4.0.3"
 
         buildConfigField("String", "AGNES_API_KEY", "\"${localProps.getProperty("AGNES_API_KEY") ?: ""}\"")
     }
