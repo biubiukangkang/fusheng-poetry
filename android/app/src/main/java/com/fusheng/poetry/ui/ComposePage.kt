@@ -1,8 +1,8 @@
 package com.fusheng.poetry.ui
 
 // 创作页（定稿 §5.3，实现参考 04-创作.html）：
-// 照片 218×158 编辑框 → 笺纸注记 → 配诗三枚方印（觅 AI / 集 诗集 / 写 自写）→ 入馆墨条
-// AI 按注记配诗（贴意/豪放/婉约 + 换一换）；自写可补全残句
+// 照片 218×158 编辑框 → 笺纸注记 → 配诗三枚方印（觅 词库/AI / 集 诗集 / 写 自写）→ 入馆墨条
+// 觅：AI 从词库选贴合注记的真实古诗（贴意/豪放/婉约倾向 + 换一换）；自写可补全残句
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -61,6 +61,8 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import coil.compose.AsyncImage
 import com.fusheng.poetry.data.AiClient
+import com.fusheng.poetry.data.CorpusPoem
+import com.fusheng.poetry.data.CorpusRepo
 import com.fusheng.poetry.data.ExhibitEntity
 import com.fusheng.poetry.data.FushengDb
 import com.fusheng.poetry.data.PhotoStore
@@ -98,7 +100,7 @@ fun ComposePage(presetPoemId: String? = null, onDone: () -> Unit) {
     var mode by remember { mutableStateOf(if (presetPoemId != null) "pick" else "ai") } // ai(觅) | pick(集) | write(写)
     var selectedPoemId by remember { mutableStateOf(presetPoemId) }
     var aiStyle by remember { mutableStateOf("贴意") }
-    var aiVerses by remember { mutableStateOf<List<String>>(emptyList()) }
+    var aiPoems by remember { mutableStateOf<List<CorpusPoem>>(emptyList()) }
     var aiIndex by remember { mutableIntStateOf(0) }
     var aiBusy by remember { mutableStateOf(false) }
     var writeTitle by remember { mutableStateOf("") }
@@ -136,14 +138,15 @@ fun ComposePage(presetPoemId: String? = null, onDone: () -> Unit) {
         aiBusy = true
         error = null
         scope.launch {
-            aiVerses = try {
-                AiClient.seekVerses(note.trim(), aiStyle)
+            aiPoems = try {
+                val corpus = CorpusRepo.loadAsync(context)
+                AiClient.seekPoems(note.trim(), aiStyle, corpus)
             } catch (e: Exception) {
                 error = if (e is java.net.SocketTimeoutException) "AI 响应慢，请稍后再试"
-                else "觅句失败：${e.message}"
+                else "觅诗失败：${e.message}"
                 emptyList()
             }
-            if (aiVerses.isEmpty() && error == null) error = "觅句失败，请重试"
+            if (aiPoems.isEmpty() && error == null) error = "觅诗失败，请重试"
             aiIndex = 0
             aiBusy = false
         }
@@ -238,11 +241,11 @@ fun ComposePage(presetPoemId: String? = null, onDone: () -> Unit) {
 
     fun submitAiVerse() {
         val photo = photoUri
-        if (aiVerses.isEmpty()) {
-            error = "先觅一句"
+        if (aiPoems.isEmpty()) {
+            error = "先觅一首"
             return
         }
-        val verse = aiVerses[aiIndex % aiVerses.size]
+        val poem = aiPoems[aiIndex % aiPoems.size]
         if (photo == null) {
             error = "请先选择照片"
             return
@@ -251,26 +254,27 @@ fun ComposePage(presetPoemId: String? = null, onDone: () -> Unit) {
         error = null
         scope.launch {
             try {
-                val written = PoemEntity(
+                // 觅得的是词库真诗：未拾入过则拾入诗集（点开详情才有译文注释）
+                val owned = picked.find { it.poemKey == poem.id }
+                val poemEntity = owned ?: PoemEntity(
                     id = UUID.randomUUID().toString(),
-                    poemKey = "",
-                    title = note.trim().take(12).ifEmpty { "AI 觅句" },
-                    author = SettingsStore.penName(context),
-                    dynasty = "",
-                    content = verse,
-                    focusLine = verse,
-                    tags = "",
+                    poemKey = poem.id,
+                    title = poem.title,
+                    author = poem.author,
+                    dynasty = poem.dynasty,
+                    content = poem.lines.joinToString("\n"),
+                    focusLine = poem.focusLine,
+                    tags = poem.tags.joinToString(","),
                     createdAt = Instant.now().toString(),
-                )
-                dao.insertPoem(written)
+                ).also { dao.insertPoem(it) }
                 val photoId = PhotoStore.save(context, photo)
                 dao.insertExhibit(
                     ExhibitEntity(
                         id = UUID.randomUUID().toString(),
                         photoId = photoId,
                         note = note.trim(),
-                        poemId = written.id,
-                        focusLine = verse,
+                        poemId = poemEntity.id,
+                        focusLine = poem.focusLine,
                         source = "ai",
                         createdAt = Instant.now().toString(),
                     ),
@@ -370,9 +374,10 @@ fun ComposePage(presetPoemId: String? = null, onDone: () -> Unit) {
         // 三、配一首诗：左侧竖排建议 + 右侧出处/选印/三枚方印
         SectionLabel("配一首诗")
         Row(verticalAlignment = Alignment.Top) {
-            // 左：竖排建议（AI 有结果时显示当前组）
-            val verseLines = if (mode == "ai" && aiVerses.isNotEmpty()) {
-                splitPoemLines(aiVerses[aiIndex % aiVerses.size])
+            // 左：竖排建议（觅得词库诗时显示当前首的名句）
+            val currentAi = if (aiPoems.isEmpty()) null else aiPoems[aiIndex % aiPoems.size]
+            val verseLines = if (mode == "ai" && currentAi != null) {
+                splitPoemLines(currentAi.focusLine)
             } else {
                 val sel = selectedPoemId?.let { id -> picked.find { it.id == id } }
                 when {
@@ -391,8 +396,8 @@ fun ComposePage(presetPoemId: String? = null, onDone: () -> Unit) {
             Column(Modifier.weight(1f).padding(top = 6.dp)) {
                 // 出处 + 选印
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    val meta = if (mode == "ai" && aiVerses.isNotEmpty()) {
-                        "AI 觅句 · ${aiStyle}"
+                    val meta = if (mode == "ai" && currentAi != null) {
+                        "${currentAi.author}  ${currentAi.title}"
                     } else {
                         selectedPoemId?.let { id -> picked.find { it.id == id } }?.let { "${it.author}  ${it.title}" } ?: "还没选诗"
                     }
@@ -404,8 +409,8 @@ fun ComposePage(presetPoemId: String? = null, onDone: () -> Unit) {
                         color = Ink3,
                         modifier = Modifier.weight(1f),
                     )
-                    if (mode == "ai" && aiVerses.isNotEmpty()) {
-                        SealSquare("选", 22, 10) // 当前展示组即选中（状态印，非按钮）
+                    if (mode == "ai" && currentAi != null) {
+                        SealSquare("选", 22, 10) // 当前展示首即选中（状态印，非按钮）
                     }
                     if (mode == "pick" && selectedPoemId != null) {
                         SealSquare("选", 22, 10)
@@ -419,7 +424,7 @@ fun ComposePage(presetPoemId: String? = null, onDone: () -> Unit) {
                     ) {
                         listOf("贴意", "豪放", "婉约").forEach { s ->
                             StyleSign(s, aiStyle == s) {
-                                // 觅句中不接单：否则标签换了、出句还是旧风格
+                                // 觅诗中不接单：否则标签换了、选中的还是旧偏好
                                 if (!aiBusy) {
                                     aiStyle = s
                                     seek() // 选风格即开始觅句，换风格即重新觅句
@@ -428,7 +433,7 @@ fun ComposePage(presetPoemId: String? = null, onDone: () -> Unit) {
                             Spacer(Modifier.width(8.dp))
                         }
                         Spacer(Modifier.weight(1f))
-                        val canSwap = aiVerses.isNotEmpty() && !aiBusy
+                        val canSwap = aiPoems.isNotEmpty() && !aiBusy
                         Text(
                             "换一换",
                             fontFamily = SansFont,
@@ -436,22 +441,22 @@ fun ComposePage(presetPoemId: String? = null, onDone: () -> Unit) {
                             color = if (canSwap) Ink2 else Ink3.copy(alpha = 0.5f),
                             modifier = Modifier
                                 .clickable(enabled = canSwap) {
-                                    aiIndex = (aiIndex + 1) % aiVerses.size
+                                    aiIndex = (aiIndex + 1) % aiPoems.size
                                 }
                                 .padding(4.dp),
                         )
                     }
                     if (aiBusy) {
                         Text(
-                            "觅句中…",
+                            "觅诗中…",
                             fontFamily = KaiFont,
                             fontSize = 13.sp,
                             color = Ink3,
                             modifier = Modifier.padding(top = 12.dp),
                         )
-                    } else if (aiVerses.isEmpty()) {
+                    } else if (aiPoems.isEmpty()) {
                         Text(
-                            "按注记为你配诗，选一种风格开始",
+                            "按注记从词库为你觅诗，选一种风格开始",
                             fontFamily = KaiFont,
                             fontSize = 13.sp,
                             lineHeight = 1.8.em,
@@ -508,7 +513,7 @@ fun ComposePage(presetPoemId: String? = null, onDone: () -> Unit) {
         Spacer(Modifier.height(28.dp))
         val canSubmit = !submitting && photoUri != null && when (mode) {
             "pick" -> picked.any { it.id == selectedPoemId }
-            "ai" -> aiVerses.isNotEmpty()
+            "ai" -> aiPoems.isNotEmpty()
             else -> true
         }
         InkButton(if (submitting) "入 馆 中" else "入 馆", enabled = canSubmit) {

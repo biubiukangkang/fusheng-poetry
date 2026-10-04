@@ -32,11 +32,18 @@ object AiClient {
         }
     }
 
-    private const val SYSTEM_PROMPT =
-        "你是精通古诗词的助手。根据用户描述的生活场景，创作 3 组两句一组的古风短句，" +
-            "意境贴合场景、语言自然。只输出 JSON：" +
-            "{\"verses\":[\"第一组两句用逗号连接\",\"第二组…\",\"第三组…\"]}，" +
-            "每组不超过 14 字，不要任何解释和其他内容。"
+    // 觅诗两段式：先从注记提炼意象关键词做本地粗筛，再让 AI 只在候选清单里精选
+    // ——AI 不能自己编诗，结果必定来自词库（详情页译文注释可用）
+    private const val KEYWORDS_PROMPT =
+        "用户写了一句生活注记。请提炼 4-6 个最适合用来检索古诗词的意象关键词" +
+            "（单字或双字词，如：雨、月、桂花、归、夜、酒、花、江、雪、离别、思乡），" +
+            "覆盖场景的核心意象。只输出 JSON：{\"keywords\":[\"雨\",\"夜\"]}，不要任何解释。"
+
+    private const val PICK_PROMPT_HEAD =
+        "下面是词库候选古诗词清单（编号|诗题|作者|名句）。用户的生活注记是：「"
+    private const val PICK_PROMPT_TAIL =
+        "。请从清单中挑出 3 首最贴合注记意境的。只输出 JSON：" +
+            "{\"ids\":[\"编号\",\"编号\",\"编号\"]}，按贴合度从高到低排序，只能用清单里的编号，不要任何解释。"
 
     private const val COMPLETE_PROMPT =
         "你是古诗词词典。用户只记得一首真实古诗词的片段（诗题、作者或其中一句），" +
@@ -52,19 +59,100 @@ object AiClient {
         val lines: List<String>,
     )
 
-    suspend fun seekVerses(scene: String, style: String = "贴意"): List<String> = withContext(Dispatchers.IO) {
-        val styleHint = when (style) {
-            "豪放" -> "风格偏豪放：气象开阔、笔力雄健。"
-            "婉约" -> "风格偏婉约：柔婉细腻、情致含蓄。"
-            else -> "" // 贴意：默认贴合场景即可
+    /** 按注记从词库觅诗：两段式（关键词粗筛 → AI 精选），返回词库原诗（保 AI 排序） */
+    suspend fun seekPoems(
+        scene: String,
+        style: String,
+        corpus: List<CorpusPoem>,
+    ): List<CorpusPoem> = withContext(Dispatchers.IO) {
+        val keywords = requestKeywords(scene)
+        val candidates = rankCandidates(scene, keywords, corpus)
+        if (candidates.isEmpty()) throw IOException("没觅到贴合的意象，换个说法试试")
+        val picked = pickFromCandidates(scene, style, candidates)
+        if (picked.isEmpty()) throw IOException("没觅到贴合的，多写点细节再试")
+        picked
+    }
+
+    private suspend fun requestKeywords(scene: String): List<String> = withContext(Dispatchers.IO) {
+        val content = chatJson(KEYWORDS_PROMPT, scene)
+        val start = content.indexOf('{')
+        val end = content.lastIndexOf('}')
+        if (start < 0 || end <= start) return@withContext defaultKeywords(scene)
+        try {
+            val arr = JSONObject(content.substring(start, end + 1)).getJSONArray("keywords")
+            (0 until arr.length()).map { arr.getString(it).trim() }
+                .filter { it.isNotEmpty() }
+                .take(6)
+        } catch (e: Exception) {
+            defaultKeywords(scene)
         }
+    }
+
+    /** AI 没给出可用关键词时，把注记按 2 字滑窗切成兜底关键词 */
+    private fun defaultKeywords(scene: String): List<String> {
+        val s = scene.filter { !it.isWhitespace() }.take(12)
+        return (0 until maxOf(1, s.length - 1)).map { s.substring(it, minOf(it + 2, s.length)) }.distinct().take(6)
+    }
+
+    /** 关键词在词库里打分排序：focusLine 命中 3 分、题/作者 2 分、全诗 1 分；取前 60 首 */
+    internal fun rankCandidates(
+        scene: String,
+        keywords: List<String>,
+        corpus: List<CorpusPoem>,
+    ): List<CorpusPoem> {
+        if (keywords.isEmpty()) return emptyList()
+        val scored = ArrayList<Pair<Int, CorpusPoem>>()
+        for (p in corpus) {
+            var score = 0
+            for (kw in keywords) {
+                if (p.focusLine.contains(kw, ignoreCase = true)) score += 3
+                if (p.title.contains(kw, ignoreCase = true) || p.author.contains(kw, ignoreCase = true)) score += 2
+                if (p.lines.any { it.contains(kw, ignoreCase = true) }) score += 1
+                if (p.tags.any { it.contains(kw, ignoreCase = true) }) score += 1
+            }
+            if (score > 0) scored.add(score to p)
+        }
+        return scored.sortedByDescending { it.first }.take(60).map { it.second }
+    }
+
+    private suspend fun pickFromCandidates(
+        scene: String,
+        style: String,
+        candidates: List<CorpusPoem>,
+    ): List<CorpusPoem> = withContext(Dispatchers.IO) {
+        val styleHint = when (style) {
+            "豪放" -> "如有贴合，优先气象开阔、笔力雄健的。"
+            "婉约" -> "如有贴合，优先柔婉细腻、情致含蓄的。"
+            else -> ""
+        }
+        val listing = candidates.mapIndexed { i, p -> "${i + 1}|${p.title}|${p.author}|${p.focusLine}" }
+            .joinToString("\n")
+        val content = chatJson(PICK_PROMPT_HEAD + scene + "」。" + styleHint + PICK_PROMPT_TAIL, listing)
+        val start = content.indexOf('{')
+        val end = content.lastIndexOf('}')
+        if (start < 0 || end <= start) return@withContext emptyList()
+        val ids = try {
+            val arr = JSONObject(content.substring(start, end + 1)).getJSONArray("ids")
+            (0 until arr.length()).map { arr.getString(it).trim() }
+        } catch (e: Exception) {
+            emptyList()
+        }
+        // AI 返回的编号是 1 起始的清单序号；容错：也接受词库 id 本身
+        ids.mapNotNull { raw ->
+            val n = raw.toIntOrNull()
+            if (n != null && n in 1..candidates.size) candidates[n - 1]
+            else candidates.find { it.id == raw }
+        }.distinctBy { it.id }.take(3)
+    }
+
+    private suspend fun chatJson(system: String, user: String): String = withContext(Dispatchers.IO) {
         val client = newClient()
         try {
             val body = JSONObject().apply {
                 put("model", MODEL)
                 put("messages", JSONArray().apply {
-                    put(JSONObject().put("role", "system").put("content", SYSTEM_PROMPT + styleHint))
-                    put(JSONObject().put("role", "user").put("content", scene))
+                    put(JSONObject().put("role", "system").put("content", system))
+                    put(JSONObject().put("role", "user").put("content", user))
                 })
             }
             val resp = client.post("$BASE_URL/chat/completions") {
@@ -73,11 +161,9 @@ object AiClient {
                 setBody(body.toString())
             }
             if (!resp.status.isSuccess()) throw IOException("AI 接口异常：HTTP ${resp.status.value}")
-            val content = JSONObject(resp.bodyAsText())
+            JSONObject(resp.bodyAsText())
                 .getJSONArray("choices").getJSONObject(0)
                 .getJSONObject("message").getString("content")
-
-            parseVerses(content)
         } finally {
             client.close()
         }
@@ -108,28 +194,6 @@ object AiClient {
         } finally {
             client.close()
         }
-    }
-
-    /** 优先解析 JSON；模型输出不守格式时按行/分号降级切分 */
-    internal fun parseVerses(content: String): List<String> {
-        val text = content.trim().trimIndent()
-        val start = text.indexOf('{')
-        val end = text.lastIndexOf('}')
-        if (start >= 0 && end > start) {
-            try {
-                val verses = JSONObject(text.substring(start, end + 1)).getJSONArray("verses")
-                val list = (0 until verses.length()).map { verses.getString(it).trim() }
-                    .filter { it.isNotEmpty() }
-                if (list.isNotEmpty()) return list
-            } catch (e: Exception) {
-                // 落到降级切分
-            }
-        }
-        return text.split("\n", "；", ";")
-            .map { it.trim().trim('*', '-', '·', ' ', '"', '「', '」') }
-            .filter { it.isNotEmpty() && !it.startsWith("{") }
-            .distinct()
-            .take(6)
     }
 
     /** 解析补全结果；notFound / 缺关键字段 / 格式坏都返回 null */
