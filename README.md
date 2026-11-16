@@ -6,6 +6,12 @@
 
 > 古诗词 × 生活照片的私人手卷：拍下生活瞬间，写一句注记，配一首诗，入馆成卷。
 
+| 最新版本 | 平台 | 下载 | 词库 | 许可 |
+|---|---|---|---|---|
+| v4.0.3 | Android 8.0+（Kotlin + Compose） | [Releases 下载 APK](https://github.com/biubiukangkang/fusheng-poetry/releases) | 3327 首（含译文/注释/赏析） | MIT |
+
+网页体验版（QMuse 平台构建）：<https://qmuse.cn/app/5255402544676766>
+
 **「手卷」视觉**——照片是书页上的图版，诗是竖排墨字，注记是旁批小楷，日期署名是朱砂小印，底部五键是深墨木轴。纸色 `#D9D6C3` / 墨 `#1C211E` / 朱砂 `#B33A2E`，全局无阴影、图片直角无装饰。
 
 ## 诗 × 画
@@ -66,6 +72,16 @@ cd fusheng-poetry/android
 ```
 
 或直接安装 Release 里的 APK；应用内更新已启用（「我 → 版本与更新」）。
+
+## 📁 目录结构
+
+```
+android/      安卓 App 源码（Kotlin + Jetpack Compose，主仓）
+qmuse-app/    参赛网页版（React + Vite，QMuse 平台构建）
+server/       PC 端归档 API（可选，App 当前不依赖）
+docs/         README 用素材：banner + 诗画图 + 六张界面截图
+输出/         设计定稿（规格书 + 视觉稿 + HTML 实现参考）
+```
 
 ## 📄 许可证
 
